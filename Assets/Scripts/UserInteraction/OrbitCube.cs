@@ -124,7 +124,7 @@ public class OrbitCube : MonoBehaviour
     {
         // since the transform changes for every rotation, this dict can't just
         // be in the Start() method because then the transform values would be constant
-        Dictionary<string, Vector3> faces = new Dictionary<string, Vector3>()
+        Dictionary<string, Vector3> facesOrientation = new Dictionary<string, Vector3>()
         {
             {"CubeFaceFront", transform.forward },
             {"CubeFaceBack", -transform.forward },
@@ -135,13 +135,13 @@ public class OrbitCube : MonoBehaviour
         };
 
         Vector3 normal;
-        if (!faces.TryGetValue(faceColliderName, out normal))
+        if (!facesOrientation.TryGetValue(faceColliderName, out normal))
         {
             Debug.LogWarning("Cube face not found");
             return Vector3.zero;
         }
 
-        normal = faces[faceColliderName];
+        normal = facesOrientation[faceColliderName];
         return normal;
     }
 }
