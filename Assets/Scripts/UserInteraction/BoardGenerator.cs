@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -52,5 +53,4 @@ public class BoardGenerator : MonoBehaviour
             cell.name = "Cell" + i;
         }
     }
-
 }
