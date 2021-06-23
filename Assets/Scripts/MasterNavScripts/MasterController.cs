@@ -7,6 +7,9 @@ public class MasterController : MonoBehaviour
 
     private GameObject stateManager;
 
+    public string sliceTargetFaceName { get; set; }
+    public string sliceDownwardFaceName { get; set; }
+
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
@@ -18,9 +21,16 @@ public class MasterController : MonoBehaviour
         LoadScene("MainMenu");
     }
 
-    // All scene changes will be executed here
+    // All scene changes will be executed via this method
     public void LoadScene(string sceneName)
     {
         SceneManager.LoadScene(sceneName);
+    }
+
+    public void TransitionToSliceView(string targetFaceName, string downwardFaceName)
+    {
+        sliceTargetFaceName = targetFaceName;
+        sliceDownwardFaceName = downwardFaceName;
+        LoadScene("SliceViewScene");
     }
 }

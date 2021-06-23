@@ -8,18 +8,8 @@ public class OrbitCube : MonoBehaviour
     [SerializeField] private float speedGain = 1;
     [SerializeField] private float doubleClickInterval = 0.4f; // seconds
 
-    private List<string> faces;
-    private string targetFaceName = string.Empty; // rotate this to camera
-    private string downwardFaceName = string.Empty; // rotate this to face downward
-    private Vector3 mousePosLastFrame;
-    private Vector3 vectorToCamera;
-    private float mouseTimeLastClicked = -1f;
-    
-    private void Start()
-    {
-        vectorToCamera = gameObject.transform.position - mainCamera.transform.position;
-
-        faces = new List<string>()
+    private MasterController mc;
+    private List<string> faces = new List<string>()
         {
             "CubeFaceFront",
             "CubeFaceBack",
@@ -28,6 +18,25 @@ public class OrbitCube : MonoBehaviour
             "CubeFaceTop",
             "CubeFaceBottom",
         };
+
+    private string targetFaceName = string.Empty; // rotate this to camera
+    private string downwardFaceName = string.Empty; // rotate this to face downward
+    private Vector3 mousePosLastFrame;
+    private Vector3 vectorToCamera;
+    private float mouseTimeLastClicked = -1f;
+    
+    private void Start()
+    {
+        try
+        {
+            mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
+        }
+        catch
+        {
+            Debug.LogWarning("Master Controller not found.");
+        }
+        
+        vectorToCamera = gameObject.transform.position - mainCamera.transform.position;
     }
 
     private void Update()
@@ -87,6 +96,8 @@ public class OrbitCube : MonoBehaviour
         // target has been reached
         if (angularVelFromTargetFace.magnitude < 0.001)
         {
+            // todo move the reset logic to a "on scene load" function instead
+            TransitionToSliceView(targetFaceName, downwardFaceName);
             SetTargetNormal(string.Empty);
             downwardFaceName = string.Empty;
         }
@@ -143,5 +154,13 @@ public class OrbitCube : MonoBehaviour
 
         normal = facesOrientation[faceColliderName];
         return normal;
+    }
+
+    // this info will be passed to the SliceView scene so that it loads the correct slice
+    void TransitionToSliceView(string targetFaceName, string downwardFaceName)
+    {
+        mc.sliceTargetFaceName = targetFaceName;
+        mc.sliceDownwardFaceName = downwardFaceName;
+        mc.LoadScene("SliceViewScene");
     }
 }
