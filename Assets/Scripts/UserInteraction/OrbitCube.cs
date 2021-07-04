@@ -81,7 +81,6 @@ public class OrbitCube : MonoBehaviour
 
     private void SetTargetNormal(string faceColliderName)
     {
-        Debug.Log(faceColliderName);
         targetFaceName = faceColliderName;
     }
 
@@ -159,6 +158,8 @@ public class OrbitCube : MonoBehaviour
     // this info will be passed to the SliceView scene so that it loads the correct slice
     void TransitionToSliceView(string targetFaceName, string downwardFaceName)
     {
+        if (mc == null) return;
+
         mc.sliceTargetFaceName = targetFaceName;
         mc.sliceDownwardFaceName = downwardFaceName;
         mc.LoadScene("SliceViewScene");

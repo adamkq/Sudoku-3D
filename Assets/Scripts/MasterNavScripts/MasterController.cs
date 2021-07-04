@@ -9,11 +9,13 @@ public class MasterController : MonoBehaviour
 
     public string sliceTargetFaceName { get; set; }
     public string sliceDownwardFaceName { get; set; }
+    private StateManager sm;
 
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
         stateManager = Instantiate(stateManagerPrefab);
+        sm = stateManager.GetComponent<StateManager>();
     }
 
     void Start()
@@ -32,5 +34,10 @@ public class MasterController : MonoBehaviour
         sliceTargetFaceName = targetFaceName;
         sliceDownwardFaceName = downwardFaceName;
         LoadScene("SliceViewScene");
+    }
+
+    public char GetCellValue(int[] cellIndex)
+    {
+        return sm.BoardState[cellIndex[0], cellIndex[1], cellIndex[2]];
     }
 }

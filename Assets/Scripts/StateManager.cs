@@ -17,12 +17,14 @@ public class StateManager : MonoBehaviour
     private void Awake()
     {
         BoardState = new char[8, 8, 8];
+        GenerateRandomBoardState();
+
         DontDestroyOnLoad(gameObject);
     }
 
     void Start()
     {
-        GenerateRandomBoardState();
+        
     }
 
     // for testing purposes

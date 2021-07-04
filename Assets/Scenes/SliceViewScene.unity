@@ -165,6 +165,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6544d29606d2473bbd05a0a84aa6719, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _cellContainer: {fileID: 760375792}
 --- !u!114 &355480614
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -179,6 +180,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _cellContainer: {fileID: 760375792}
   _cell: {fileID: 6122330509886928909, guid: 3defdcdf3ad3f4055bc7e4c773caf69b, type: 3}
+  _boardManager: {fileID: 355480613}
   _pixelMarginFromScreenEdge: 50
 --- !u!1 &723090427
 GameObject:

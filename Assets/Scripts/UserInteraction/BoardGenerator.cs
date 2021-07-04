@@ -7,21 +7,31 @@ public class BoardGenerator : MonoBehaviour
 {
     // The "cell" game object contains a single digit. This script will
     // duplicate it 64 times in order to fill out the entire board.
+
     [SerializeField] private GameObject _cellContainer;
     [SerializeField] private GameObject _cell;
+
+    // CellControllers can call this script to get the board state
+    [SerializeField] private BoardManager _boardManager;
 
     // separate the board from the edge of the screen.
     [SerializeField] private int _pixelMarginFromScreenEdge = 50;
 
+    private MasterController _mc;
     private Vector2Int screenDimensions;
     private Vector3 boardUpperLeftCorner;
     private int boardSideLength;
 
-    void Start()
+    private void Awake()
     {
         GetScreenDimensions();
         DetermineBoardSize();
         InstantiateAllCells();
+    }
+
+    void Start()
+    {
+        _mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
     }
 
     private void GetScreenDimensions()
@@ -49,8 +59,10 @@ public class BoardGenerator : MonoBehaviour
         {
             GameObject cell = Instantiate(_cell, _cellContainer.transform);
             cell.transform.position = new Vector3(i % 8 * cellSideLength, -i / 8 * cellSideLength) + boardUpperLeftCorner + new Vector3(cellSideLength/2, -cellSideLength/2);
-            cell.GetComponent<CellScript>().SetRectTransformSize(cellSideLength, cellSideLength);
             cell.name = "Cell" + i;
+
+            CellController cc = cell.GetComponent<CellController>();
+            cc.SetRectTransformSize(cellSideLength, cellSideLength);
         }
     }
 }
