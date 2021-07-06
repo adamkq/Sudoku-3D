@@ -13,9 +13,9 @@ public class CellController : MonoBehaviour
     
     private RectTransform rt;
     private TextMeshProUGUI buttonText;
-    private int[] cellIndex = new int[3];
 
     public MasterController mc { get; set; }
+    public int[] CellIndex = new int[3];
     public char CellChar { get; set; }
 
     void Awake()
@@ -33,7 +33,7 @@ public class CellController : MonoBehaviour
     {
         Debug.Log("Click:" + CellChar);
 
-        UpdateCellValue(cellIndex);
+        UpdateCellValue(CellIndex);
         SetButtonCharacterText(CellChar);
     }
 
@@ -44,7 +44,7 @@ public class CellController : MonoBehaviour
 
     public void SetButtonCharacterText(char chr)
     {
-        Debug.LogFormat("Cell at {0}: {1}", string.Join(", ", cellIndex), CellChar);
+        Debug.LogFormat("Cell at {0}: {1}", string.Join(", ", CellIndex), CellChar);
         buttonText.text = CellChar.ToString();
     }
 
@@ -66,7 +66,7 @@ public class CellController : MonoBehaviour
             }
         }
 
-        this.cellIndex = cellIndex;
+        this.CellIndex = cellIndex;
     }
 
     public void UpdateCellValue(int[] cellIndex)

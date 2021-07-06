@@ -17,30 +17,31 @@ public class StateManager : MonoBehaviour
     private void Awake()
     {
         BoardState = new char[8, 8, 8];
-        GenerateRandomBoardState();
+        GenerateTestBoardState();
 
         DontDestroyOnLoad(gameObject);
     }
 
-    void Start()
+    void GenerateTestBoardState()
     {
-        
-    }
-
-    // for testing purposes
-    void GenerateRandomBoardState()
-    {
-        int randomIndex = 0;
         for (int i = 0; i < BoardState.GetLength(0); i++)
         {
             for (int j = 0; j < BoardState.GetLength(1); j++)
             {
                 for (int k = 0; k < BoardState.GetLength(1); k++)
                 {
-                    randomIndex = Random.Range(0, tokenSet.Length);
-                    BoardState[i, j, k] = tokenSet[randomIndex];
+                    BoardState[i, j, k] = '0';
                 }
             }
         }
+
+        BoardState[0, 0, 0] = '1';
+        BoardState[0, 0, 7] = '2';
+        BoardState[0, 7, 0] = '3';
+        BoardState[0, 7, 7] = '4';
+        BoardState[7, 0, 0] = '5';
+        BoardState[7, 0, 7] = '6';
+        BoardState[7, 7, 0] = '7';
+        BoardState[7, 7, 7] = '8';
     }
 }
