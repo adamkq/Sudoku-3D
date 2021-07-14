@@ -21,31 +21,18 @@ public class CellController : MonoBehaviour
     void Awake()
     {
         rt = gameObject.GetComponent<RectTransform>();
-    }
-
-    private void Start()
-    {
         button.onClick.AddListener(TaskOnClick);
         buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
     }
 
     private void TaskOnClick()
     {
-        Debug.Log("Click:" + CellChar);
-
         UpdateCellValue(CellIndex);
-        SetButtonCharacterText(CellChar);
     }
 
     public void SetRectTransformSize(int width, int height)
     {
         rt.sizeDelta = new Vector2(width, height);
-    }
-
-    public void SetButtonCharacterText(char chr)
-    {
-        Debug.LogFormat("Cell at {0}: {1}", string.Join(", ", CellIndex), CellChar);
-        buttonText.text = CellChar.ToString();
     }
 
     // this is called by BoardManager whenever the slice is updated
@@ -72,5 +59,6 @@ public class CellController : MonoBehaviour
     public void UpdateCellValue(int[] cellIndex)
     {
         this.CellChar = mc.GetCellValue(cellIndex);
+        buttonText.text = CellChar.ToString();
     }
 }

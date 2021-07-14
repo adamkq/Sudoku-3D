@@ -43,5 +43,10 @@ public class StateManager : MonoBehaviour
         BoardState[7, 0, 7] = '6';
         BoardState[7, 7, 0] = '7';
         BoardState[7, 7, 7] = '8';
+
+        BoardState[1, 1, 0] = '1';
+        BoardState[2, 2, 0] = '1';
+        BoardState[3, 3, 0] = '1';
+
     }
 }
