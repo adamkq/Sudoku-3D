@@ -15,6 +15,7 @@ public class CellController : MonoBehaviour
     private TextMeshProUGUI buttonText;
 
     public MasterController mc { get; set; }
+    public BoardManager _bm { get; set; }
     public int[] CellIndex = new int[3];
     public char CellChar { get; set; }
 
@@ -25,9 +26,9 @@ public class CellController : MonoBehaviour
         buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
     }
 
-    private void TaskOnClick()
+    void TaskOnClick()
     {
-        UpdateCellValue(CellIndex);
+        _bm.GetComponent<TokenMenuManager>().OpenMenuAtCell(gameObject);
     }
 
     public void SetRectTransformSize(int width, int height)
@@ -54,6 +55,11 @@ public class CellController : MonoBehaviour
         }
 
         this.CellIndex = cellIndex;
+    }
+
+    public void UpdateCellValue()
+    {
+        UpdateCellValue(CellIndex);
     }
 
     public void UpdateCellValue(int[] cellIndex)

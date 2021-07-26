@@ -4,9 +4,7 @@ using UnityEngine;
 
 public class StateManager : MonoBehaviour
 {
-    // this class will communicate with the solver via the Master Controller
-
-    private char[] tokenSet = new char[] { '1', '2', '3', '4', '5', '6', '7', '8' };
+    public HashSet<char> TokenSet { get; set; }
 
     // the board that will be accessed by the UI/Slice View
     public char[,,] BoardState { get; set; }
@@ -16,10 +14,13 @@ public class StateManager : MonoBehaviour
 
     private void Awake()
     {
+        DontDestroyOnLoad(gameObject);
+
         BoardState = new char[8, 8, 8];
         GenerateTestBoardState();
 
-        DontDestroyOnLoad(gameObject);
+        // the set of symbols that the user can put into each cell; does not include the empty option
+        TokenSet = new HashSet<char>() { '1', '2', '3', '4', '5', '6', '7', '8' };
     }
 
     void GenerateTestBoardState()

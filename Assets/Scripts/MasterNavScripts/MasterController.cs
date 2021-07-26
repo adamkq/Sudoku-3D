@@ -3,19 +3,16 @@ using UnityEngine.SceneManagement;
 
 public class MasterController : MonoBehaviour
 {
-    [SerializeField] private GameObject stateManagerPrefab;
+    public StateManager stateManager;
+    [SerializeField] private Solver solver;
 
-    private GameObject stateManager;
-
+    
     public string sliceTargetFaceName { get; set; }
     public string sliceDownwardFaceName { get; set; }
-    private StateManager sm;
 
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
-        stateManager = Instantiate(stateManagerPrefab);
-        sm = stateManager.GetComponent<StateManager>();
     }
 
     void Start()
@@ -36,8 +33,18 @@ public class MasterController : MonoBehaviour
         LoadScene("SliceViewScene");
     }
 
+    // *** The Rest of this file consists of Mediator Functions *** //
+
     public char GetCellValue(int[] cellIndex)
     {
-        return sm.BoardState[cellIndex[0], cellIndex[1], cellIndex[2]];
+        return stateManager.BoardState[cellIndex[0], cellIndex[1], cellIndex[2]];
     }
+
+    public bool SetCellValue(int[] cellIndex, char cellValue)
+    {
+        stateManager.BoardState[cellIndex[0], cellIndex[1], cellIndex[2]] = cellValue;
+        return true;
+    }
+
+
 }

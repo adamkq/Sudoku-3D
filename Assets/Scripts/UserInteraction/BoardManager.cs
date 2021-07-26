@@ -5,7 +5,12 @@ using UnityEngine;
 
 public class BoardManager : MonoBehaviour
 {
-    // This class manages navigation between slices, and updates the 3d index of each cell
+    /* This class:
+     * 1. manages navigation between slices, and updates the 3d index of each cell
+     * 2. mediates between user selection, state update, and cell value update
+     * 3. colors the background of all cells in a slice in order to provide hints to the user
+    */
+
 
     [SerializeField] private GameObject _cellContainer;
 
@@ -126,7 +131,7 @@ public class BoardManager : MonoBehaviour
         {
             for (row = 0; row < 4; row++)
             {
-                for (col = row; col < 6 - row; col++)
+                for (col = row; col < 7 - row; col++)
                 {
                     // rotating a 2d array using 1d indexing, fun...
                     swap = _cells[row * 8 + col].CellIndex;
@@ -157,5 +162,11 @@ public class BoardManager : MonoBehaviour
     public void LoadOrbitCubeViewScene()
     {
         _mc.LoadScene("OrbitCubeViewScene");
+    }
+
+    // called by token selection menu
+    public void SetCellValue(int[] cellIndex, char cellValue)
+    {
+        _mc.SetCellValue(cellIndex, cellValue);
     }
 }

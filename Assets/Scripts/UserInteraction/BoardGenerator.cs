@@ -63,6 +63,7 @@ public class BoardGenerator : MonoBehaviour
 
             CellController cc = cell.GetComponent<CellController>();
             cc.SetRectTransformSize(cellSideLength, cellSideLength);
+            cc._bm = _boardManager;
         }
     }
 }
