@@ -32,6 +32,8 @@ public class TokenMenuManager : MonoBehaviour
 
         Vector3 menuPos = new Vector3(_tokenMenu.transform.position.x, cell.transform.position.y + menuOffset.y, _tokenMenu.transform.position.z);
         _tokenMenu.transform.position = menuPos;
+        IndicateConflictingTokens();
+
         _tokenMenu.SetActive(true);
     }
 
@@ -40,12 +42,24 @@ public class TokenMenuManager : MonoBehaviour
     {
         _bm.SetCellValue(_selectedCell.CellIndex, cellValue);
         _selectedCell.UpdateCellValue();
+
+        _bm.RefreshAllCellColors();
         _tokenMenu.SetActive(false);
     }
 
     // if a token conflicts, set the background color of the button to red
-    public void IndicateConflictingTokens(char[] conflictingToken)
+    void IndicateConflictingTokens()
     {
+        HashSet<char> validTokens = _bm.masterController.stateManager.GetValidTokensForCell(_selectedCell.CellIndex);
 
+        foreach(var tokenButton in _tokenMenu.GetComponentsInChildren<TokenButton>())
+        {
+            char chr;
+            bool result = char.TryParse(tokenButton.GetTokenValue(), out chr);
+            if (result)
+            {
+                tokenButton.SetBackgroundColor(_bm.GetCellColor(validTokens, chr, false));
+            }
+        }
     }
 }

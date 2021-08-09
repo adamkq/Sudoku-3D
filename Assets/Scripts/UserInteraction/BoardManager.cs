@@ -15,7 +15,7 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private GameObject _cellContainer;
 
     private CellController[] _cells;
-    private MasterController _mc;
+    public MasterController masterController;
 
     // these variables can be used to determine the slice to display
     private string _targetFaceName = string.Empty;
@@ -26,23 +26,24 @@ public class BoardManager : MonoBehaviour
     {
         _cells = _cellContainer.GetComponentsInChildren<CellController>();
 
-        _mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
-        AssignMCToCells(_mc);
+        masterController = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
+        AssignMCToCells(masterController);
 
-        _targetFaceName = _mc.sliceTargetFaceName;
-        _downwardFaceName = _mc.sliceDownwardFaceName;
+        _targetFaceName = masterController.sliceTargetFaceName;
+        _downwardFaceName = masterController.sliceDownwardFaceName;
 
         Debug.LogFormat("{0}, {1}", _targetFaceName, _downwardFaceName);
 
         SetIndexesForAllCells();
         UpdateAllCells();
+        RefreshAllCellColors();
     }
 
     private void AssignMCToCells(MasterController mc)
     {
         foreach(var cell in _cells)
         {
-            cell.mc = this._mc;
+            cell.mc = this.masterController;
         }
     }
 
@@ -123,6 +124,16 @@ public class BoardManager : MonoBehaviour
 
     }
 
+    internal void RefreshAllCellColors()
+    {
+        foreach (var cell in _cells)
+        {
+            HashSet<char> validTokens = masterController.stateManager.GetValidTokensForCell(cell.CellIndex);
+
+            cell.SetBackgroundColor(GetCellColor(validTokens, cell.CellChar, masterController.stateManager.IsGiven(cell.CellIndex)));
+        }
+    }
+
     void RotateCellIndexesCW(int rotationsCW = 1)
     {
         int[] swap;
@@ -157,16 +168,46 @@ public class BoardManager : MonoBehaviour
         _depth = Mathf.Clamp(_depth + depthDelta, 0, 7);
         SetIndexesForAllCells();
         UpdateAllCells();
+        RefreshAllCellColors();
     }
 
     public void LoadOrbitCubeViewScene()
     {
-        _mc.LoadScene("OrbitCubeViewScene");
+        masterController.LoadScene("OrbitCubeViewScene");
     }
 
     // called by token selection menu
     public void SetCellValue(int[] cellIndex, char cellValue)
     {
-        _mc.SetCellValue(cellIndex, cellValue);
+        masterController.stateManager.SetCellValue(cellIndex, cellValue);
+        RefreshAllCellColors();
+    }
+
+    public Color GetCellColor(HashSet<char> validTokens, char cellChar, bool isGiven = false)
+    {
+        if (!masterController.stateManager.TokenSet.Contains(cellChar))
+        {
+            return Colors.CELL_NORMAL;
+        }
+        else if (isGiven)
+        {
+            return Colors.CELL_GIVEN;
+        }
+        else if (!validTokens.Contains(cellChar))
+        {
+            return Colors.CELL_CONFLICT;
+        }
+        else if (validTokens.Count == 1)
+        {
+            return Colors.CELL_GREEN;
+        }
+        else if (validTokens.Count < 4)
+        {
+            return Colors.CELL_YELLOW;
+        }
+        else
+        {
+            return Colors.CELL_NORMAL;
+        }
     }
 }

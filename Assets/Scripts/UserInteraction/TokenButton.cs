@@ -6,17 +6,40 @@ public class TokenButton : MonoBehaviour
 {
     [SerializeField] private Button button;
     [SerializeField] private TokenMenuManager tokenMenuManager;
+    public string ButtonText { get; set; }
 
-    private string buttonText;
+
 
     void Awake()
     {
         button.onClick.AddListener(TaskOnClick);
-        buttonText = button.GetComponentInChildren<TextMeshProUGUI>().text;
+        ButtonText = button.GetComponentInChildren<TextMeshProUGUI>().text;
     }
 
     void TaskOnClick()
     {
-        tokenMenuManager.MakeSelection(char.Parse(buttonText));
+        char chr;
+        bool result = char.TryParse(ButtonText, out chr);
+
+        if (result)
+        {
+            tokenMenuManager.MakeSelection(chr);
+            return;
+        }
+        tokenMenuManager.MakeSelection(' ');
+    }
+
+    public string GetTokenValue()
+    {
+        return gameObject.GetComponentInChildren<TextMeshProUGUI>().text;
+    }
+
+    public void SetBackgroundColor(Color color)
+    {
+        ColorBlock colorBlock = button.colors;
+
+        colorBlock.normalColor = color;
+
+        button.colors = colorBlock;
     }
 }

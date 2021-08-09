@@ -64,7 +64,16 @@ public class CellController : MonoBehaviour
 
     public void UpdateCellValue(int[] cellIndex)
     {
-        this.CellChar = mc.GetCellValue(cellIndex);
+        CellChar = mc.stateManager.GetCellValue(cellIndex);
         buttonText.text = CellChar.ToString();
+    }
+
+    public void SetBackgroundColor(Color color)
+    {
+        ColorBlock colorBlock = button.colors;
+
+        colorBlock.normalColor = color;
+
+        button.colors = colorBlock;
     }
 }
