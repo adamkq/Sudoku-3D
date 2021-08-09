@@ -1,5 +1,5 @@
 # Sudoku-3D
-Generalize the rules of Sudoku to a 3D board. Develop in Unity and publish to app store.
+Generalize the rules of Sudoku to a 3D board.
 
 The "board" in this case is an 8 x 8 x 8 cube, containing 512 cells up from 81 in standard Sudoku.
 To solve the puzzle, the digits 1 - 8 must be entered into each cell, and each subset of cells must have only one of each. In standard Sudoku there are 27 subsets (9 rows, 9 columns, 9 subsquares) but in Sudoku 3D there are 256 (64 rows, 64 columns, 64 aisles, 64 subcubes). 
