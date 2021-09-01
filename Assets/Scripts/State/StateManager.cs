@@ -11,7 +11,7 @@ public class StateManager : MonoBehaviour
     // the board that will be accessed by the UI/Slice View
     public char[,,] BoardState { get; set; }
 
-    // the number of conflicts for each cell. A value of 1 indicates a Given.
+    // A value of 1 indicates a Given.
     public int[,,] BoardGivens { get; set; }
 
     private void Awake()
@@ -77,12 +77,14 @@ public class StateManager : MonoBehaviour
         {
             for (int j = 0; j < BoardGivens.GetLength(1); j++)
             {
-                for (int k = 0; k < BoardGivens.GetLength(1); k++)
+                for (int k = 0; k < BoardGivens.GetLength(2); k++)
                 {
-                    BoardGivens[i, j, k] = 1;
+                    BoardGivens[i, j, k] = 0;
                 }
             }
         }
+
+        BoardGivens[0, 0, 0] = 1;
     }
 
     internal HashSet<char> GetValidTokensForCell(int[] cellIndex)
@@ -92,7 +94,6 @@ public class StateManager : MonoBehaviour
 
     public bool IsGiven(int[] cellIndex)
     {
-        //return BoardGivens[cellIndex[0], cellIndex[1], cellIndex[2]] == 1;
-        return false;
+        return BoardGivens[cellIndex[0], cellIndex[1], cellIndex[2]] == 1;
     }
 }

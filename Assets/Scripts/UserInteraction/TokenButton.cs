@@ -5,10 +5,8 @@ using TMPro;
 public class TokenButton : MonoBehaviour
 {
     [SerializeField] private Button button;
-    [SerializeField] private TokenMenuManager tokenMenuManager;
+    public TokenMenuManager tokenMenuManager { get; set; }
     public string ButtonText { get; set; }
-
-
 
     void Awake()
     {

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -67,11 +68,59 @@ public class Solver : MonoBehaviour
         return TokenSet;
     }
 
+    bool IsSolved(char[,,] boardState)
+    {
+        // If any cell is empty, return false. This will handle the majority of calls quickly.
+        // If any cell conflicts with any other cell, return false.
+        return false; // TODO
+    }
+
     int SolveBacktrack(char[,,] boardState, bool stopOnFirstSolution = false)
     {
+        Sieve sieve = new Sieve();
         int numberOfSolutionsFound = 0;
 
-        HashSet<char>[,,] sieve = new HashSet<char>[8, 8, 8];
+        void SolveBacktrackRecursive(char[,,] _boardState)
+        {
+            // stop early
+            if (stopOnFirstSolution && numberOfSolutionsFound > 0) return;
+
+            // increment solution count
+            if (IsSolved(boardState))
+            {
+                numberOfSolutionsFound += 1;
+                return;
+            }
+
+            // any branches in which not all cells have an option can be pruned.
+            if (!sieve.AllCellsHaveAtLeastOneOption()) return;
+
+            /* Approach:
+             * 1. Find the cellIndex that contains the option that, if picked, 
+             * reduces the search space more than any other option (this is done
+             * via the sieve class).
+             * 2. Iterate through all options in the cell index.
+             * 3. Apply each option, call this inner function recursively, and
+             * then revert each option.
+             */
+            int[] cellIndex = sieve.GetBestSearchReduction(_sm.BoardGivens);
+
+            if (_sm.IsGiven(cellIndex))
+            {
+                throw new Exception("You messed up");
+            }
+
+            foreach(char chr in sieve.validOptions[cellIndex[0],cellIndex[1],cellIndex[2]])
+            {
+                _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = chr;
+
+                sieve.ApplySelection(cellIndex, chr);
+                SolveBacktrackRecursive(_boardState);
+
+                sieve.RevertSelection(cellIndex, chr);
+            }
+            
+        }
 
         // get initial choices
         for (int i = 0; i < 8; i++)
@@ -80,15 +129,13 @@ public class Solver : MonoBehaviour
             {
                 for (int k = 0; k < 8; j++)
                 {
-                    sieve[i, j, k] = GetValidTokensForCell(boardState, new int[] { i, j, k });
+                    sieve.validOptions[i, j, k] = GetValidTokensForCell(boardState, new int[] { i, j, k });
                 }
             }
         }
+        sieve.InitializeSearchReduction();
 
-        // for each choice, take the choice, evaluate the number of options per cell (iteratively) and keep track
-        // of the one that reduces the search space the most. Then actually apply the most reductive choice (recursively).
-        
-
+        SolveBacktrackRecursive(boardState);
 
         return numberOfSolutionsFound;
     }

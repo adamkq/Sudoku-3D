@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(BoardManager))]
-
 public class TokenMenuManager : MonoBehaviour
 {
     /*This class handles the menu that pops up and allows the user to select a token
@@ -15,50 +13,76 @@ public class TokenMenuManager : MonoBehaviour
 
     [SerializeField] private GameObject _tokenMenu;
 
+    private GameObject _tokenMenuInstance;
     private BoardManager _bm;
     private CellController _selectedCell;
-
-    private void Start()
-    {
-        _bm = GetComponent<BoardManager>();
-        _tokenMenu.SetActive(false);
-    }
+    private TokenButton[] _tokenButtons;
+    private TokenMenuCloseButton _tmcb;
 
     public void OpenMenuAtCell(GameObject cell)
     {
+        // reset if open
+        if (_tokenMenuInstance != null) Destroy(_tokenMenuInstance);
+
+        // instantiate under BoardCanvas
         _selectedCell = cell.GetComponent<CellController>();
-        RectTransform rt = cell.GetComponent<RectTransform>();
-        Vector2 menuOffset = rt.sizeDelta;
+        _tokenMenuInstance = Instantiate(_tokenMenu, cell.transform.parent.parent);
 
-        Vector3 menuPos = new Vector3(_tokenMenu.transform.position.x, cell.transform.position.y + menuOffset.y, _tokenMenu.transform.position.z);
-        _tokenMenu.transform.position = menuPos;
+        // positioning
+        RectTransform rt = _tokenMenuInstance.GetComponent<RectTransform>();
+        Vector2 rtSize = rt.sizeDelta;
+        Vector2 cellSize = cell.GetComponent<RectTransform>().sizeDelta;
+
+        rt.position = new Vector3(
+            //cell.transform.position.x + rtSize.x / 2f + cellSize.x / 2f,
+            Screen.width / 2,
+            cell.transform.position.y + rtSize.y / 2f + cellSize.y / 2f,
+            0);
+
+        // buttons
+        _tokenButtons = _tokenMenuInstance.GetComponentsInChildren<TokenButton>();
+        foreach(var tb in _tokenButtons)
+        {
+            tb.tokenMenuManager = gameObject.GetComponent<TokenMenuManager>();
+        }
+
+        _tmcb = _tokenMenuInstance.GetComponentInChildren<TokenMenuCloseButton>();
+        _tmcb.tokenMenuManager = gameObject.GetComponent<TokenMenuManager>();
+
+        // colors
         IndicateConflictingTokens();
-
-        _tokenMenu.SetActive(true);
     }
 
     // token buttons will call this method
     public void MakeSelection(char cellValue)
     {
+        _bm = gameObject.GetComponent<CellController>()._bm;
         _bm.SetCellValue(_selectedCell.CellIndex, cellValue);
         _selectedCell.UpdateCellValue();
 
         _bm.RefreshAllCellColors();
-        _tokenMenu.SetActive(false);
+        CloseMenu();
     }
 
-    // if a token conflicts, set the background color of the button to red
+    // tapping on the blocking panel (outside the menu) will call this method
+    public void CloseMenu()
+    {
+        Destroy(_tokenMenuInstance);
+    }
+
+    // Can set other background colors as well
     void IndicateConflictingTokens()
     {
+        _bm = gameObject.GetComponent<CellController>()._bm;
         HashSet<char> validTokens = _bm.masterController.stateManager.GetValidTokensForCell(_selectedCell.CellIndex);
 
-        foreach(var tokenButton in _tokenMenu.GetComponentsInChildren<TokenButton>())
+        foreach(var tb in _tokenButtons)
         {
             char chr;
-            bool result = char.TryParse(tokenButton.GetTokenValue(), out chr);
+            bool result = char.TryParse(tb.GetTokenValue(), out chr);
             if (result)
             {
-                tokenButton.SetBackgroundColor(_bm.GetCellColor(validTokens, chr, false));
+                tb.SetBackgroundColor(_bm.GetCellColor(validTokens, chr, false));
             }
         }
     }

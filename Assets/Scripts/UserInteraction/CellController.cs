@@ -28,7 +28,7 @@ public class CellController : MonoBehaviour
 
     void TaskOnClick()
     {
-        _bm.GetComponent<TokenMenuManager>().OpenMenuAtCell(gameObject);
+        GetComponent<TokenMenuManager>().OpenMenuAtCell(gameObject);
     }
 
     public void SetRectTransformSize(int width, int height)
