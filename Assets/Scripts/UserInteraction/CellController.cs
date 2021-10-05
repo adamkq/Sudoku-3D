@@ -10,6 +10,7 @@ public class CellController : MonoBehaviour
     // 3. Update the character in response to popup menu selection
 
     [SerializeField] private Button button;
+    [SerializeField] private Image image;
     
     private RectTransform rt;
     private TextMeshProUGUI buttonText;
@@ -28,6 +29,7 @@ public class CellController : MonoBehaviour
 
     void TaskOnClick()
     {
+        if (mc.stateManager.IsGiven(CellIndex)) return;
         GetComponent<TokenMenuManager>().OpenMenuAtCell(gameObject);
     }
 
@@ -70,10 +72,6 @@ public class CellController : MonoBehaviour
 
     public void SetBackgroundColor(Color color)
     {
-        ColorBlock colorBlock = button.colors;
-
-        colorBlock.normalColor = color;
-
-        button.colors = colorBlock;
+        image.color = color;
     }
 }

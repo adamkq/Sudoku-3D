@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Solver : MonoBehaviour
@@ -70,12 +71,20 @@ public class Solver : MonoBehaviour
 
     bool IsSolved(char[,,] boardState)
     {
-        // If any cell is empty, return false. This will handle the majority of calls quickly.
-        // If any cell conflicts with any other cell, return false.
-        return false; // TODO
+        for (int i = 0; i < 8; i++)
+        {
+            for (int j = 0; j < 8; j++)
+            {
+                for (int k = 0; k < 8; k++)
+                {
+                    if (boardState[i, j, k] == ' ') return false;
+                }
+            }
+        }
+        return true;
     }
 
-    int SolveBacktrack(char[,,] boardState, bool stopOnFirstSolution = false)
+    public int SolveBacktrack(char[,,] boardState, bool stopOnFirstSolution = false)
     {
         Sieve sieve = new Sieve();
         int numberOfSolutionsFound = 0;
@@ -98,42 +107,70 @@ public class Solver : MonoBehaviour
             /* Approach:
              * 1. Find the cellIndex that contains the option that, if picked, 
              * reduces the search space more than any other option (this is done
-             * via the sieve class).
+             * via the Sieve class).
              * 2. Iterate through all options in the cell index.
-             * 3. Apply each option, call this inner function recursively, and
-             * then revert each option.
+             * 3. Apply each option and call this inner function recursively
              */
             int[] cellIndex = sieve.GetBestSearchReduction(_sm.BoardGivens);
-
+            
+            if (cellIndex.Max() > 7)
+            {
+                return; // no best isr found, or all cells are givens
+            }
             if (_sm.IsGiven(cellIndex))
             {
-                throw new Exception("You messed up");
+                throw new Exception("Solver attempted to modify given (constant) cell");
             }
 
-            foreach(char chr in sieve.validOptions[cellIndex[0],cellIndex[1],cellIndex[2]])
+            sieve.initialSearchReduction[cellIndex[0], cellIndex[1], cellIndex[2]] = -1; // marks the cell so the algorithm doesn't recurse on it
+
+            char storeChr = _boardState[cellIndex[0], cellIndex[1], cellIndex[2]];
+
+            foreach (char chr in sieve.validOptions[cellIndex[0],cellIndex[1],cellIndex[2]])
             {
+                Debug.LogFormat("{0}, {1}, {2}: {3}", cellIndex[0], cellIndex[1], cellIndex[2], chr);
                 _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = chr;
 
-                sieve.ApplySelection(cellIndex, chr);
+                sieve.UpdateValidOptionsForIntersectingCells(this, _sm.BoardGivens, boardState, cellIndex);
                 SolveBacktrackRecursive(_boardState);
-
-                sieve.RevertSelection(cellIndex, chr);
             }
-            
+
+            _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = storeChr; // leave board unmodified in case of no solution
+
         }
 
-        // get initial choices
+        // get initial options
         for (int i = 0; i < 8; i++)
         {
             for (int j = 0; j < 8; j++)
             {
-                for (int k = 0; k < 8; j++)
+                for (int k = 0; k < 8; k++)
                 {
-                    sieve.validOptions[i, j, k] = GetValidTokensForCell(boardState, new int[] { i, j, k });
+                    int[] cellIndex = new int[] { i, j, k };
+                    sieve.validOptions[i, j, k] = GetValidTokensForCell(boardState, cellIndex);
                 }
             }
         }
-        sieve.InitializeSearchReduction();
+
+        // get initial search reduction
+        for (int i = 0; i < 8; i++)
+        {
+            for (int j = 0; j < 8; j++)
+            {
+                for (int k = 0; k < 8; k++)
+                {
+                    int[] cellIndex = new int[] { i, j, k };
+                    if (_sm.BoardGivens[i, j, k] == 1)
+                    {
+                        sieve.initialSearchReduction[i, j, k] = -1; // cells with isr value = -1 will not be recursed on
+                    }
+                    else
+                    {
+                        sieve.initialSearchReduction[i, j, k] = sieve.GetInitialSearchReduction(_sm, boardState, cellIndex);
+                    }
+                }
+            }
+        }
 
         SolveBacktrackRecursive(boardState);
 

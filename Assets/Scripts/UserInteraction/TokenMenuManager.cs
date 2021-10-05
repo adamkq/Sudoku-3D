@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TokenMenuManager : MonoBehaviour
 {
@@ -17,16 +18,19 @@ public class TokenMenuManager : MonoBehaviour
     private BoardManager _bm;
     private CellController _selectedCell;
     private TokenButton[] _tokenButtons;
-    private TokenMenuCloseButton _tmcb;
+    private TokenMenuCloseButton _tmcb; // entire-screen button in the background that will close the menu when clicked
+    private GameObject _duplicatedCell; // show this above the grayed-out canvas to highlight it to the user
 
     public void OpenMenuAtCell(GameObject cell)
     {
-        // reset if open
-        if (_tokenMenuInstance != null) Destroy(_tokenMenuInstance);
-
         // instantiate under BoardCanvas
         _selectedCell = cell.GetComponent<CellController>();
         _tokenMenuInstance = Instantiate(_tokenMenu, cell.transform.parent.parent);
+
+        // duplicate the cell
+        _duplicatedCell = Instantiate(cell, cell.transform.parent.parent);
+        Button btn = _duplicatedCell.GetComponentInChildren<Button>();
+        btn.interactable = false;
 
         // positioning
         RectTransform rt = _tokenMenuInstance.GetComponent<RectTransform>();
@@ -34,7 +38,6 @@ public class TokenMenuManager : MonoBehaviour
         Vector2 cellSize = cell.GetComponent<RectTransform>().sizeDelta;
 
         rt.position = new Vector3(
-            //cell.transform.position.x + rtSize.x / 2f + cellSize.x / 2f,
             Screen.width / 2,
             cell.transform.position.y + rtSize.y / 2f + cellSize.y / 2f,
             0);
@@ -56,7 +59,7 @@ public class TokenMenuManager : MonoBehaviour
     // token buttons will call this method
     public void MakeSelection(char cellValue)
     {
-        _bm = gameObject.GetComponent<CellController>()._bm;
+        GetBoardManager();
         _bm.SetCellValue(_selectedCell.CellIndex, cellValue);
         _selectedCell.UpdateCellValue();
 
@@ -67,13 +70,14 @@ public class TokenMenuManager : MonoBehaviour
     // tapping on the blocking panel (outside the menu) will call this method
     public void CloseMenu()
     {
+        Destroy(_duplicatedCell);
         Destroy(_tokenMenuInstance);
     }
 
     // Can set other background colors as well
     void IndicateConflictingTokens()
     {
-        _bm = gameObject.GetComponent<CellController>()._bm;
+        GetBoardManager();
         HashSet<char> validTokens = _bm.masterController.stateManager.GetValidTokensForCell(_selectedCell.CellIndex);
 
         foreach(var tb in _tokenButtons)
@@ -85,5 +89,10 @@ public class TokenMenuManager : MonoBehaviour
                 tb.SetBackgroundColor(_bm.GetCellColor(validTokens, chr, false));
             }
         }
+    }
+
+    void GetBoardManager()
+    {
+        _bm = gameObject.GetComponent<CellController>()._bm;
     }
 }
