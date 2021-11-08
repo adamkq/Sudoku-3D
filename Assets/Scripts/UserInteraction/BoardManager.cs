@@ -155,12 +155,13 @@ public class BoardManager : MonoBehaviour
         }
     }
 
-    void UpdateAllCells()
+    public void UpdateAllCells()
     {
         foreach(var cell in _cells)
         {
             cell.UpdateCellValue(cell.CellIndex);
         }
+        RefreshAllCellColors();
     }
 
     public void IncrementDepthAndUpdateCells(int depthDelta)

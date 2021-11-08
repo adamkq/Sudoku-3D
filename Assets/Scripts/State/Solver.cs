@@ -7,7 +7,7 @@ using UnityEngine;
 public class Solver : MonoBehaviour
 {
     private MasterController _mc;
-    private StateManager _sm;
+    private StateManager m_stateManager;
 
     void Awake()
     {
@@ -17,13 +17,13 @@ public class Solver : MonoBehaviour
     private void Start()
     {
         _mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
-        _sm = _mc.stateManager;
+        m_stateManager = _mc.stateManager;
     }
 
     // find the tokens that don't conflict with other tokens in the set(s)
     public HashSet<char> GetValidTokensForCell(char[,,] boardState, int[] cellIndex)
     {
-        HashSet<char> TokenSet = new HashSet<char>(_sm.TokenSet);
+        HashSet<char> TokenSet = new HashSet<char>(m_stateManager.TokenSet);
         HashSet<char> ExcludeSet = new HashSet<char>();
 
         // LINQ is unsuitable because a multidimensional array doesn't implement IEnumerable<T>
@@ -45,18 +45,12 @@ public class Solver : MonoBehaviour
 
         // check cubeset
         // find the corner cell for the cubeset, then iterate over all 8 cells
-        int[] cornerCellIndex = new int[]
-        {
-            cellIndex[0] - cellIndex[0] % 2,
-            cellIndex[1] - cellIndex[1] % 2,
-            cellIndex[2] - cellIndex[2] % 2
-        };
-
+        int rowIndex, colIndex, planeIndex;
         for (int i = 0; i < 8; i++)
         {
-            int rowIndex = cornerCellIndex[0] + i / 4;
-            int colIndex = cornerCellIndex[1] + (i / 2) % 2;
-            int planeIndex = cornerCellIndex[2] + i % 2;
+            rowIndex = cellIndex[0] - cellIndex[0] % 2 + i / 4;
+            colIndex = cellIndex[1] - cellIndex[1] % 2 + i / 2 % 2;
+            planeIndex = cellIndex[2] - cellIndex[2] % 2 + i % 2;
 
             // no self-conflict; if the cell being checked is the given cell, skip
             if (rowIndex == cellIndex[0] && colIndex == cellIndex[1] && planeIndex == cellIndex[2]) continue;
@@ -69,105 +63,120 @@ public class Solver : MonoBehaviour
         return TokenSet;
     }
 
-    bool IsSolved(char[,,] boardState)
+    public bool IsSolved(char[,,] boardState)
     {
-        for (int i = 0; i < 8; i++)
+        HashSet<char> subSet = new HashSet<char>();
+        char chr;
+        // in each rowset, columnset, planeset, and cubeset, each symbol must appear exactly once
+        for (int setID = 0; setID < 64; setID++)
         {
-            for (int j = 0; j < 8; j++)
+            // rowset; column and page fixed
+            subSet.Clear();
+            for (int i = 0; i < 8; i++)
             {
-                for (int k = 0; k < 8; k++)
-                {
-                    if (boardState[i, j, k] == ' ') return false;
-                }
+                chr = boardState[i, setID / 8, setID % 8];
+                if (!m_stateManager.TokenSet.Contains(chr)) return false; // clear/blank cells
+                if (subSet.Contains(chr)) return false; // duplicate cells
+            }
+
+            // columnset; row and page fixed
+            subSet.Clear();
+            for (int i = 0; i < 8; i++)
+            {
+                chr = boardState[setID / 8, i, setID % 8];
+                if (!m_stateManager.TokenSet.Contains(chr)) return false; // clear/blank cells
+                if (subSet.Contains(chr)) return false; // duplicate cells
+            }
+
+            // planeset; column and row fixed
+            subSet.Clear();
+            for (int i = 0; i < 8; i++)
+            {
+                chr = boardState[setID / 8, setID % 8, i];
+                if (!m_stateManager.TokenSet.Contains(chr)) return false; // clear/blank cells
+                if (subSet.Contains(chr)) return false; // duplicate cells
+            }
+
+            // cubeset
+            subSet.Clear();
+
+            int cornerRowIndex = (setID / 16) * 2;
+            int cornerColumnIndex = ((setID / 4) % 4) * 2;
+            int cornerPlaneIndex = (setID % 4) * 2;
+            for (int i = 0; i < 8; i++)
+            {
+                int rowIndex = cornerRowIndex + i / 4;
+                int colIndex = cornerColumnIndex + i / 2 % 2;
+                int planeIndex = cornerPlaneIndex + i % 2;
+
+                chr = boardState[rowIndex, colIndex, planeIndex];
+                if (!m_stateManager.TokenSet.Contains(chr)) return false; // clear/blank cells
+                if (subSet.Contains(chr)) return false; // duplicate cells
             }
         }
+
         return true;
     }
 
-    public int SolveBacktrack(char[,,] boardState, bool stopOnFirstSolution = false)
+    public int SolveBacktrack(char[,,] boardState, int maxNumberOfSolutions = 1)
     {
-        Sieve sieve = new Sieve();
         int numberOfSolutionsFound = 0;
 
-        void SolveBacktrackRecursive(char[,,] _boardState)
+        bool SolveBacktrackRecursive(char[,,] _boardState, int cellIndexSerialized = 0)
         {
-            // stop early
-            if (stopOnFirstSolution && numberOfSolutionsFound > 0) return;
-
-            // increment solution count
-            if (IsSolved(boardState))
-            {
-                numberOfSolutionsFound += 1;
-                return;
-            }
-
-            // any branches in which not all cells have an option can be pruned.
-            if (!sieve.AllCellsHaveAtLeastOneOption()) return;
-
             /* Approach:
-             * 1. Find the cellIndex that contains the option that, if picked, 
-             * reduces the search space more than any other option (this is done
-             * via the Sieve class).
-             * 2. Iterate through all options in the cell index.
+             * 1. Find the next cell Index.
+             * 2. Iterate through all options in the cell.
              * 3. Apply each option and call this inner function recursively
              */
-            int[] cellIndex = sieve.GetBestSearchReduction(_sm.BoardGivens);
-            
-            if (cellIndex.Max() > 7)
+
+            // stop early
+            if (numberOfSolutionsFound >= maxNumberOfSolutions) return true;
+
+            // Max depth reached, we have a solution
+            if (cellIndexSerialized > 511)
             {
-                return; // no best isr found, or all cells are givens
-            }
-            if (_sm.IsGiven(cellIndex))
-            {
-                throw new Exception("Solver attempted to modify given (constant) cell");
+                numberOfSolutionsFound += 1;
+                return true;
             }
 
-            sieve.initialSearchReduction[cellIndex[0], cellIndex[1], cellIndex[2]] = -1; // marks the cell so the algorithm doesn't recurse on it
+            // find next cell and deserialize it
+            int[] cellIndex = DeserializeCell(cellIndexSerialized);
+            while (m_stateManager.IsGiven(cellIndex))
+            {
+                cellIndexSerialized += 1; // skip over Given cells
+                cellIndex = DeserializeCell(cellIndexSerialized);
+            }
+
+            // safeguards
+            if (cellIndex.Max() > 7) throw new Exception("Index out of range error in solver");
+
+            if (m_stateManager.IsGiven(cellIndex)) throw new Exception("Solver tried to modify given cell");
 
             char storeChr = _boardState[cellIndex[0], cellIndex[1], cellIndex[2]];
 
-            foreach (char chr in sieve.validOptions[cellIndex[0],cellIndex[1],cellIndex[2]])
+            foreach (char chr in GetValidTokensForCell(_boardState, cellIndex))
             {
-                Debug.LogFormat("{0}, {1}, {2}: {3}", cellIndex[0], cellIndex[1], cellIndex[2], chr);
                 _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = chr;
 
-                sieve.UpdateValidOptionsForIntersectingCells(this, _sm.BoardGivens, boardState, cellIndex);
-                SolveBacktrackRecursive(_boardState);
+                if (SolveBacktrackRecursive(_boardState, cellIndexSerialized + 1)) return true;
+
+                _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = storeChr; // leave board unmodified in case of no solution
             }
 
-            _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = storeChr; // leave board unmodified in case of no solution
-
+            return false;
         }
 
-        // get initial options
-        for (int i = 0; i < 8; i++)
+        // first, check for conflicts among given cells. If any, return -1
+        for (int ii = 0; ii < 8; ii++)
         {
-            for (int j = 0; j < 8; j++)
+            for (int jj = 0; jj < 8; jj++)
             {
-                for (int k = 0; k < 8; k++)
+                for (int kk = 0; kk < 8; kk++)
                 {
-                    int[] cellIndex = new int[] { i, j, k };
-                    sieve.validOptions[i, j, k] = GetValidTokensForCell(boardState, cellIndex);
-                }
-            }
-        }
-
-        // get initial search reduction
-        for (int i = 0; i < 8; i++)
-        {
-            for (int j = 0; j < 8; j++)
-            {
-                for (int k = 0; k < 8; k++)
-                {
-                    int[] cellIndex = new int[] { i, j, k };
-                    if (_sm.BoardGivens[i, j, k] == 1)
-                    {
-                        sieve.initialSearchReduction[i, j, k] = -1; // cells with isr value = -1 will not be recursed on
-                    }
-                    else
-                    {
-                        sieve.initialSearchReduction[i, j, k] = sieve.GetInitialSearchReduction(_sm, boardState, cellIndex);
-                    }
+                    int[] cellIndex = new int[] { ii, jj, kk };
+                    HashSet<char> validTokens = GetValidTokensForCell(boardState, cellIndex);
+                    if (m_stateManager.IsGiven(cellIndex) && !validTokens.Contains(boardState[ii, jj, kk])) return -1;
                 }
             }
         }
@@ -175,5 +184,15 @@ public class Solver : MonoBehaviour
         SolveBacktrackRecursive(boardState);
 
         return numberOfSolutionsFound;
+    }
+
+    int[] DeserializeCell(int cellIndexSerialized)
+    {
+        // cIS = row * 64 + col * 8 + pageIndex
+        int pageIndex = cellIndexSerialized % 8;
+        int columnIndex = (cellIndexSerialized / 8) % 64 % 8;
+        int rowIndex = (cellIndexSerialized - columnIndex * 8 - pageIndex) / 64;
+
+        return new int[] { rowIndex, columnIndex, pageIndex };
     }
 }

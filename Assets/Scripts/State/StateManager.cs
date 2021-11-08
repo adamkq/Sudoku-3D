@@ -19,10 +19,9 @@ public class StateManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         BoardState = new char[8, 8, 8];
-        GenerateTestBoardState();
-
         BoardGivens = new int[8, 8, 8];
-        LoadBoardGivens();
+
+        ResetBoard();
 
         // the set of symbols that the user can put into each cell; does not include the empty option
         TokenSet = new HashSet<char>() { '1', '2', '3', '4', '5', '6', '7', '8' };
@@ -43,6 +42,12 @@ public class StateManager : MonoBehaviour
         BoardState[cellIndex[0], cellIndex[1], cellIndex[2]] = cellValue;
     }
 
+    public void ResetBoard()
+    {
+        GenerateTestBoardState();
+        LoadBoardGivens();
+    }
+
     void GenerateTestBoardState()
     {
         for (int i = 0; i < BoardState.GetLength(0); i++)
@@ -57,13 +62,6 @@ public class StateManager : MonoBehaviour
         }
 
         BoardState[0, 0, 0] = '1';
-        BoardState[0, 0, 7] = '2';
-        BoardState[0, 7, 0] = '3';
-        BoardState[0, 7, 7] = '4';
-        BoardState[7, 0, 0] = '5';
-        BoardState[7, 0, 7] = '6';
-        BoardState[7, 7, 0] = '7';
-        BoardState[7, 7, 7] = '8';
     }
 
     void LoadBoardGivens()
