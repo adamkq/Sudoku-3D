@@ -11,7 +11,9 @@ public class CellController : MonoBehaviour
 
     [SerializeField] private Button button;
     [SerializeField] private Image image;
-    
+    [Tooltip("Used by OnValidate to set the cell as given/not given")]
+    [SerializeField] private bool cellIsGiven;
+
     private RectTransform rt;
     private TextMeshProUGUI buttonText;
 
@@ -25,6 +27,14 @@ public class CellController : MonoBehaviour
         rt = gameObject.GetComponent<RectTransform>();
         button.onClick.AddListener(TaskOnClick);
         buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+    }
+
+    void OnValidate()
+    {
+        if (!mc || !mc.stateManager) return;
+
+        mc.stateManager.BoardGivens[CellIndex[0], CellIndex[1], CellIndex[2]] = cellIsGiven ? 1 : 0;
+        _bm.UpdateAllCells();
     }
 
     void TaskOnClick()

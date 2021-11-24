@@ -11,7 +11,6 @@ public class BoardManager : MonoBehaviour
      * 3. colors the background of all cells in a slice in order to provide hints to the user
     */
 
-
     [SerializeField] private GameObject _cellContainer;
 
     private CellController[] _cells;

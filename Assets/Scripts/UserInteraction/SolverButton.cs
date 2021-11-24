@@ -32,7 +32,7 @@ public class SolverButton : MonoBehaviour
         }
         else
         {
-            int numSolutions = _mc.solver.SolveBacktrack(_mc.stateManager.BoardState, 2);
+            int numSolutions = _mc.solver.SolveBacktrack(_mc.stateManager.BoardState, 10);
             Debug.Log(numSolutions);
         }
         m_BoardManager.UpdateAllCells();
