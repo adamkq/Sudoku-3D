@@ -1,11 +1,13 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MasterController : MonoBehaviour
 {
     public StateManager stateManager;
     public Solver solver;
-
+    public PuzzleLoad puzzleLoad;
+    public PuzzleSave puzzleSave;
     
     public string sliceTargetFaceName { get; set; }
     public string sliceDownwardFaceName { get; set; }
@@ -33,5 +35,13 @@ public class MasterController : MonoBehaviour
         LoadScene("SliceViewScene");
     }
 
+    public List<PuzzleJSON> ScanAllPuzzles()
+    {
+        return puzzleLoad.GetAllPuzzles();
+    }
 
+    public void InitializePuzzle(PuzzleJSON puzzleJSON)
+    {
+        // set the stateManager w/ the givens and the state.
+    }
 }

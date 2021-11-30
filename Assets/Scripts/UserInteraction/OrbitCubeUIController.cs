@@ -4,16 +4,16 @@ using UnityEngine;
 
 public class OrbitCubeUIController : MonoBehaviour
 {
-    private MasterController mc;
+    private MasterController _mc;
 
     private void Start()
     {
-        mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
+        _mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
     }
 
     public void LoadMenuScene(string sceneName)
     {
         Debug.Log(sceneName);
-        mc.LoadScene(sceneName);
+        _mc.LoadScene(sceneName);
     }
 }

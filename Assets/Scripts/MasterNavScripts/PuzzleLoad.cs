@@ -14,6 +14,8 @@ public class PuzzleLoad : MonoBehaviour
     [Tooltip("Debug use only. Do not enter values here.")]
     [SerializeField] private int m_numberOfFiles;
 
+    public List<PuzzleJSON> AllPuzzles { get { return m_allPuzzles; } }
+
     private void OnValidate()
     {
         if (m_ScanFiles)
@@ -22,6 +24,12 @@ public class PuzzleLoad : MonoBehaviour
             m_numberOfFiles = ScanAllPuzzles();
         }
         m_ScanFiles = false;
+    }
+
+    public List<PuzzleJSON> GetAllPuzzles()
+    {
+        ScanAllPuzzles();
+        return m_allPuzzles;
     }
 
     public int ScanAllPuzzles()
