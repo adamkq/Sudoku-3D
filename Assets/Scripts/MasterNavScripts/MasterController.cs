@@ -35,7 +35,7 @@ public class MasterController : MonoBehaviour
         LoadScene("SliceViewScene");
     }
 
-    public List<PuzzleJSON> ScanAllPuzzles()
+    public List<PuzzleJSON> GetAllPuzzles()
     {
         return puzzleLoad.GetAllPuzzles();
     }
