@@ -43,5 +43,7 @@ public class MasterController : MonoBehaviour
     public void InitializePuzzle(PuzzleJSON puzzleJSON)
     {
         // set the stateManager w/ the givens and the state.
+        stateManager.InitializePuzzle(puzzleJSON);
+        LoadScene("OrbitCubeViewScene");
     }
 }

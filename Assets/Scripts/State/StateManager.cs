@@ -21,7 +21,7 @@ public class StateManager : MonoBehaviour
         BoardState = new char[8, 8, 8];
         BoardGivens = new int[8, 8, 8];
 
-        ResetBoard();
+        // ResetBoard();
 
         // the set of symbols that the user can put into each cell; does not include the empty option
         TokenSet = new HashSet<char>() { '1', '2', '3', '4', '5', '6', '7', '8' };
@@ -44,11 +44,31 @@ public class StateManager : MonoBehaviour
 
     public void ResetBoard()
     {
-        GenerateTestBoardState();
-        LoadBoardGivens();
+        GenerateDefaultBoardStateAndGivens();
     }
 
-    void GenerateTestBoardState()
+    public bool IsGiven(int[] cellIndex)
+    {
+        return BoardGivens[cellIndex[0], cellIndex[1], cellIndex[2]] == 1;
+    }
+
+    public void InitializePuzzle(PuzzleJSON puzzleJSON)
+    {
+        // deserialize board state & givens
+        for (int i = 0; i < BoardState.GetLength(0); i++)
+        {
+            for (int j = 0; j < BoardState.GetLength(1); j++)
+            {
+                for (int k = 0; k < BoardState.GetLength(1); k++)
+                {
+                    BoardState[i, j, k] = puzzleJSON.serializeBoardState[i * 64 + j * 8 + k];
+                    BoardGivens[i, j, k] = puzzleJSON.serializeBoardGivens[i * 64 + j * 8 + k];
+                }
+            }
+        }
+    }
+
+    void GenerateDefaultBoardStateAndGivens()
     {
         for (int i = 0; i < BoardState.GetLength(0); i++)
         {
@@ -57,36 +77,14 @@ public class StateManager : MonoBehaviour
                 for (int k = 0; k < BoardState.GetLength(1); k++)
                 {
                     BoardState[i, j, k] = ' ';
-                }
-            }
-        }
-
-        BoardState[0, 0, 0] = '1';
-    }
-
-    void LoadBoardGivens()
-    {
-        for (int i = 0; i < BoardGivens.GetLength(0); i++)
-        {
-            for (int j = 0; j < BoardGivens.GetLength(1); j++)
-            {
-                for (int k = 0; k < BoardGivens.GetLength(2); k++)
-                {
                     BoardGivens[i, j, k] = 0;
                 }
             }
         }
-
-        BoardGivens[0, 0, 0] = 1;
     }
 
     internal HashSet<char> GetValidTokensForCell(int[] cellIndex)
     {
         return _mc.solver.GetValidTokensForCell(BoardState, cellIndex);
-    }
-
-    public bool IsGiven(int[] cellIndex)
-    {
-        return BoardGivens[cellIndex[0], cellIndex[1], cellIndex[2]] == 1;
     }
 }

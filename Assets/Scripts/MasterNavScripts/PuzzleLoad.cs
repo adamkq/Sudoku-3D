@@ -14,38 +14,39 @@ public class PuzzleLoad : MonoBehaviour
     [Tooltip("Debug use only. Do not enter values here.")]
     [SerializeField] private int m_numberOfFiles;
 
-    public List<PuzzleJSON> AllPuzzles { get { return m_allPuzzles; } }
-
     private void OnValidate()
     {
         if (m_ScanFiles)
         {
-            m_allPuzzles = new List<PuzzleJSON>();
-            m_numberOfFiles = ScanAllPuzzles();
+            OnEnable();
         }
         m_ScanFiles = false;
     }
 
-    public List<PuzzleJSON> GetAllPuzzles()
+    private void OnEnable()
     {
-        ScanAllPuzzles();
-        return m_allPuzzles;
+        m_allPuzzles = ScanAllPuzzles();
+        m_numberOfFiles = m_allPuzzles.Count;
     }
 
-    public int ScanAllPuzzles()
+    public List<PuzzleJSON> GetAllPuzzles()
     {
-        int numberOfFiles = 0;
+        return ScanAllPuzzles();
+    }
 
-        foreach(var jsonfile in Directory.GetFiles(Directories.SAVED_PUZZLES))
+    private List<PuzzleJSON> ScanAllPuzzles()
+    {
+        List<PuzzleJSON> ap = new List<PuzzleJSON>();
+
+        foreach (var jsonfile in Directory.GetFiles(Directories.SAVED_PUZZLES))
         {
-            numberOfFiles += 1;
             try
             {
                 using (StreamReader sr = new StreamReader(jsonfile))
                 {
                     string str = sr.ReadToEnd();
                     PuzzleJSON puzzleJSON = DeserializeJSON(str);
-                    m_allPuzzles.Add(puzzleJSON);
+                    ap.Add(puzzleJSON);
                 }
             }
             catch (System.Exception ex)
@@ -55,11 +56,50 @@ public class PuzzleLoad : MonoBehaviour
             }
         }
 
-        return numberOfFiles;
+        return ap;
     }
 
     private PuzzleJSON DeserializeJSON(string str)
     {
         return JsonUtility.FromJson<PuzzleJSON>(str);
+    }
+
+    // make sure all puzzles have valid data
+    void ValidatePuzzles()
+    {
+        List<PuzzleJSON> puzzleJSONs = GetAllPuzzles();
+
+        foreach (var puzzleJSON in puzzleJSONs)
+        {
+            if (!ValidateBoardGivens(puzzleJSON.serializeBoardGivens) ||
+                !ValidateBoardState(puzzleJSON.serializeBoardState))
+            {
+                continue;
+            }
+        }
+    }
+
+    private bool ValidateBoardGivens(string boardGivens)
+    {
+        if (boardGivens.Length != 512) return false;
+
+        foreach (char c in boardGivens)
+        {
+            if (c != '0' && c != '1') return false;
+        }
+
+        return true;
+    }
+
+    private bool ValidateBoardState(string boardState)
+    {
+        if (boardState.Length != 512) return false;
+
+        foreach (char c in boardState)
+        {
+            if (c != ' ' && !char.IsDigit(c) || c == '9') return false;
+        }
+
+        return true;
     }
 }

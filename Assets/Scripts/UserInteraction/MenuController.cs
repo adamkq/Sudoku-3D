@@ -4,15 +4,25 @@ using UnityEngine;
 
 public class MenuController : MonoBehaviour
 {
-    private MasterController mc;
+    private MasterController m_masterController;
+
+    [SerializeField] private GameObject m_startButton;
+    [SerializeField] private GameObject m_menuSelectPuzzle;
 
     void Start()
     {
-        mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
+        m_masterController = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
+        m_menuSelectPuzzle.SetActive(false);
     }
 
     public void MenuLoadScene(string sceneName)
     {
-        mc.LoadScene(sceneName);
+        m_masterController.LoadScene(sceneName);
+    }
+
+    public void OnClickGoToMenuSelectPuzzle()
+    {
+        m_menuSelectPuzzle.SetActive(true);
+        m_startButton.SetActive(false);
     }
 }

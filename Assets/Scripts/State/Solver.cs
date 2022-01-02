@@ -162,7 +162,7 @@ public class Solver : MonoBehaviour
                 if (SolveBacktrackRecursive(_boardState, cellIndexSerialized + 1) && numberOfSolutionsFound >= maxNumberOfSolutions) return true;
 
                 _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = storeChr; // leave board unmodified in case of no solution
-            }
+            }   
 
             return false;
         }

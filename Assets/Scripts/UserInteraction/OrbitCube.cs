@@ -8,7 +8,7 @@ public class OrbitCube : MonoBehaviour
     [SerializeField] private float speedGain = 1;
     [SerializeField] private float doubleClickInterval = 0.4f; // seconds
 
-    private MasterController mc;
+    private MasterController m_masterController;
     private List<string> faces = new List<string>()
         {
             "CubeFaceFront",
@@ -29,7 +29,7 @@ public class OrbitCube : MonoBehaviour
     {
         try
         {
-            mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
+            m_masterController = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
         }
         catch
         {
@@ -158,10 +158,10 @@ public class OrbitCube : MonoBehaviour
     // this info will be passed to the SliceView scene so that it loads the correct slice
     void TransitionToSliceView(string targetFaceName, string downwardFaceName)
     {
-        if (mc == null) return;
+        if (m_masterController == null) return;
 
-        mc.sliceTargetFaceName = targetFaceName;
-        mc.sliceDownwardFaceName = downwardFaceName;
-        mc.LoadScene("SliceViewScene");
+        m_masterController.sliceTargetFaceName = targetFaceName;
+        m_masterController.sliceDownwardFaceName = downwardFaceName;
+        m_masterController.LoadScene("SliceViewScene");
     }
 }

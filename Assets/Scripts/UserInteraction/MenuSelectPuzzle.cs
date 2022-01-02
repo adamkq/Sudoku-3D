@@ -3,57 +3,76 @@ using System.Collections.Generic;
 
 public class MenuSelectPuzzle : MonoBehaviour
 {
-    private MasterController _mc;
+    private MasterController m_masterController;
 
-    private void Start()
+    [SerializeField] private GameObject m_viewportContent; // all the menu options are children of this Gobj
+    [SerializeField] private GameObject m_puzzleMenuButtonPrefab;
+
+    public void MenuButtonClicked(int buttonIndex)
     {
-        _mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
+        m_masterController.InitializePuzzle(m_masterController.GetAllPuzzles()[buttonIndex]);
+        m_masterController.LoadScene("OrbitCubeViewScene");
     }
 
-    // make sure all puzzles have valid data
-    void ValidatePuzzles()
+    private void Awake()
     {
-        List<PuzzleJSON> puzzleJSONs = _mc.GetAllPuzzles();
+        m_masterController = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
+    }
 
-        foreach(var puzzleJSON in puzzleJSONs)
-        {
-            if (!ValidateBoardGivens(puzzleJSON.serializeBoardGivens) ||
-                !ValidateBoardState(puzzleJSON.serializeBoardState))
-            {
-                continue;
-            }
-
-            // for now just debug to console: the number of givens and the total number of filled-in cells
-        }
+    private void OnEnable()
+    {
+        RefreshMenu();
     }
 
     // present the valid puzzles as selectable options in the scroll menu
     void RefreshMenu()
     {
+        // scan all saved puzzles and generate a menu button for each one
+        ClearMenu();
+        List<PuzzleJSON> allPuzzlesJSON = m_masterController.GetAllPuzzles();
+
+        foreach(var puzzleJson in allPuzzlesJSON)
+        {
+            GameObject puzzleOption = Instantiate(m_puzzleMenuButtonPrefab, m_viewportContent.transform);
+            PuzzleMenuButton pmb = puzzleOption.GetComponent<PuzzleMenuButton>();
+            pmb.SetTextOnButton(puzzleJson.puzzleTitle, GetDifficulty(puzzleJson.serializeBoardGivens), GetNumFilled(puzzleJson.serializeBoardState));
+            pmb.MenuSelectPuzzle = gameObject.GetComponent<MenuSelectPuzzle>();
+        }
 
     }
 
-    private bool ValidateBoardGivens(string boardGivens)
+    private void ClearMenu()
     {
-        if (boardGivens.Length != 512) return false;
-
-        foreach(char c in boardGivens)
+        foreach(Transform child in m_viewportContent.transform)
         {
-            if (c != '0' && c != '1') return false;
+            Destroy(child.gameObject);
         }
-
-        return true;
     }
 
-    private bool ValidateBoardState(string boardState)
+    private string GetDifficulty(string serializedBoardGivens)
     {
-        if (boardState.Length != 512) return false;
+        int numGivens = 0;
 
-        foreach (char c in boardState)
+        foreach (char chr in serializedBoardGivens)
         {
-            if (c != ' '  && !char.IsDigit(c) || c == '9') return false;
+            if (chr == '1') numGivens++;
         }
 
-        return true;
+        // this assumes only 1 valid solution per puzzle, and not that the puzzle is "wide-open" i.e. with many solutions
+        if (numGivens < 100) { return "Hard"; };
+        if (numGivens < 200) { return "Medium"; };
+        return "Easy";
+    }
+
+    private int GetNumFilled(string serializedBoardState)
+    {
+        int numGivens = 0;
+
+        foreach (char chr in serializedBoardState)
+        {
+            if (char.IsDigit(chr)) { numGivens++; };
+        }
+
+        return numGivens;
     }
 }

@@ -6,7 +6,7 @@ public class SolverButton : MonoBehaviour
 {
     [SerializeField] private Button button;
     [SerializeField] private BoardManager m_BoardManager;
-    private MasterController _mc;
+    private MasterController m_masterController;
     private TextMeshProUGUI _buttonText;
     
 
@@ -18,25 +18,25 @@ public class SolverButton : MonoBehaviour
 
     void Start()
     {
-        _mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
+        m_masterController = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
     }
 
     void TaskOnClick()
     {
-        bool isSolved = _mc.solver.IsSolved(_mc.stateManager.BoardState);
+        bool isSolved = m_masterController.solver.IsSolved(m_masterController.stateManager.BoardState);
         Debug.Log(isSolved);
 
         if (isSolved)
         {
-            _mc.stateManager.ResetBoard();
+            m_masterController.stateManager.ResetBoard();
         }
         else
         {
-            int numSolutions = _mc.solver.SolveBacktrack(_mc.stateManager.BoardState, 10);
+            int numSolutions = m_masterController.solver.SolveBacktrack(m_masterController.stateManager.BoardState, 10);
             Debug.Log(numSolutions);
         }
         m_BoardManager.UpdateAllCells();
-        isSolved = _mc.solver.IsSolved(_mc.stateManager.BoardState);
+        isSolved = m_masterController.solver.IsSolved(m_masterController.stateManager.BoardState);
 
         if (!_buttonText) return;
 

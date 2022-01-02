@@ -6,7 +6,7 @@ using UnityEngine;
 public class PuzzleSave : MonoBehaviour
 {
     private string m_dirSavedPuzzles;
-    [SerializeField] private MasterController _mc;
+    [SerializeField] private MasterController m_masterController;
     [SerializeField] private string m_puzzleName;
 
     [Tooltip("Click this to save the current board state as a file w/ current name")]
@@ -29,8 +29,8 @@ public class PuzzleSave : MonoBehaviour
             PuzzleJSON puzzleJSON = new PuzzleJSON();
 
             puzzleJSON.puzzleTitle = m_puzzleName;
-            puzzleJSON.serializeBoardGivens = SerializeToString(_mc.stateManager.BoardGivens);
-            puzzleJSON.serializeBoardState = SerializeToString(_mc.stateManager.BoardState);
+            puzzleJSON.serializeBoardGivens = SerializeToString(m_masterController.stateManager.BoardGivens);
+            puzzleJSON.serializeBoardState = SerializeToString(m_masterController.stateManager.BoardState);
             puzzleJSON.lastModified = DateTime.Now;
 
             string actualJSON = JsonUtility.ToJson(puzzleJSON);
@@ -50,6 +50,7 @@ public class PuzzleSave : MonoBehaviour
         }
     }
 
+    // boardGivens
     private string SerializeToString(int[,,] board)
     {
         StringBuilder sb = new StringBuilder("", board.GetLength(0) * board.GetLength(1) * board.GetLength(2));
@@ -67,6 +68,7 @@ public class PuzzleSave : MonoBehaviour
         return sb.ToString();
     }
 
+    // boardState
     private string SerializeToString(char[,,] board)
     {
         StringBuilder sb = new StringBuilder("", board.GetLength(0) * board.GetLength(1) * board.GetLength(2));

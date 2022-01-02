@@ -152,6 +152,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stateManager: {fileID: 1717593511}
   solver: {fileID: 1358549206}
+  puzzleLoad: {fileID: 427330597}
+  puzzleSave: {fileID: 427330595}
 --- !u!4 &105735856
 Transform:
   m_ObjectHideFlags: 0
