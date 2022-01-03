@@ -6,9 +6,9 @@ public class MenuController : MonoBehaviour
 {
     private MasterController m_masterController;
 
-    [SerializeField] private GameObject m_startButton;
+    [SerializeField] private GameObject m_menuStart;
     [SerializeField] private GameObject m_menuSelectPuzzle;
-
+    
     void Start()
     {
         m_masterController = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
@@ -23,6 +23,6 @@ public class MenuController : MonoBehaviour
     public void OnClickGoToMenuSelectPuzzle()
     {
         m_menuSelectPuzzle.SetActive(true);
-        m_startButton.SetActive(false);
+        m_menuStart.SetActive(false);
     }
 }

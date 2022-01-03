@@ -42,7 +42,7 @@ public class BoardManager : MonoBehaviour
     {
         foreach(var cell in _cells)
         {
-            cell.mc = this.masterController;
+            cell.MasterController = this.masterController;
         }
     }
 

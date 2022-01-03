@@ -14,26 +14,26 @@ public class TokenMenuManager : MonoBehaviour
 
     [SerializeField] private GameObject _tokenMenu;
 
-    private GameObject _tokenMenuInstance;
-    private BoardManager _bm;
-    private CellController _selectedCell;
-    private TokenButton[] _tokenButtons;
-    private TokenMenuCloseButton _tmcb; // entire-screen button in the background that will close the menu when clicked
-    private GameObject _duplicatedCell; // show this above the grayed-out canvas to highlight it to the user
+    private GameObject m_tokenMenuInstance;
+    private BoardManager m_boardManager;
+    private CellController m_selectedCell;
+    private TokenButton[] m_tokenButtons;
+    private TokenMenuCloseButton m_tmcb; // entire-screen button in the background that will close the menu when clicked
+    private GameObject m_duplicatedCell; // show this above the grayed-out canvas to highlight it to the user
 
     public void OpenMenuAtCell(GameObject cell)
     {
         // instantiate under BoardCanvas
-        _selectedCell = cell.GetComponent<CellController>();
-        _tokenMenuInstance = Instantiate(_tokenMenu, cell.transform.parent.parent);
+        m_selectedCell = cell.GetComponent<CellController>();
+        m_tokenMenuInstance = Instantiate(_tokenMenu, cell.transform.parent.parent);
 
         // duplicate the cell
-        _duplicatedCell = Instantiate(cell, cell.transform.parent.parent);
-        Button btn = _duplicatedCell.GetComponentInChildren<Button>();
+        m_duplicatedCell = Instantiate(cell, cell.transform.parent.parent);
+        Button btn = m_duplicatedCell.GetComponentInChildren<Button>();
         btn.interactable = false;
 
         // positioning
-        RectTransform rt = _tokenMenuInstance.GetComponent<RectTransform>();
+        RectTransform rt = m_tokenMenuInstance.GetComponent<RectTransform>();
         Vector2 rtSize = rt.sizeDelta;
         Vector2 cellSize = cell.GetComponent<RectTransform>().sizeDelta;
 
@@ -43,14 +43,14 @@ public class TokenMenuManager : MonoBehaviour
             0);
 
         // buttons
-        _tokenButtons = _tokenMenuInstance.GetComponentsInChildren<TokenButton>();
-        foreach(var tb in _tokenButtons)
+        m_tokenButtons = m_tokenMenuInstance.GetComponentsInChildren<TokenButton>();
+        foreach(var tb in m_tokenButtons)
         {
             tb.tokenMenuManager = gameObject.GetComponent<TokenMenuManager>();
         }
 
-        _tmcb = _tokenMenuInstance.GetComponentInChildren<TokenMenuCloseButton>();
-        _tmcb.tokenMenuManager = gameObject.GetComponent<TokenMenuManager>();
+        m_tmcb = m_tokenMenuInstance.GetComponentInChildren<TokenMenuCloseButton>();
+        m_tmcb.tokenMenuManager = gameObject.GetComponent<TokenMenuManager>();
 
         // colors
         IndicateConflictingTokens();
@@ -60,39 +60,39 @@ public class TokenMenuManager : MonoBehaviour
     public void MakeSelection(char cellValue)
     {
         GetBoardManager();
-        _bm.SetCellValue(_selectedCell.CellIndex, cellValue);
-        _selectedCell.UpdateCellValue();
+        m_boardManager.SetCellValue(m_selectedCell.CellIndex, cellValue);
+        m_selectedCell.UpdateCellValue();
 
-        _bm.RefreshAllCellColors();
+        m_boardManager.RefreshAllCellColors();
         CloseMenu();
     }
 
     // tapping on the blocking panel (outside the menu) will call this method
     public void CloseMenu()
     {
-        Destroy(_duplicatedCell);
-        Destroy(_tokenMenuInstance);
+        Destroy(m_duplicatedCell);
+        Destroy(m_tokenMenuInstance);
     }
 
     // Can set other background colors as well
     void IndicateConflictingTokens()
     {
         GetBoardManager();
-        HashSet<char> validTokens = _bm.masterController.stateManager.GetValidTokensForCell(_selectedCell.CellIndex);
+        HashSet<char> validTokens = m_boardManager.masterController.stateManager.GetValidTokensForCell(m_selectedCell.CellIndex);
 
-        foreach(var tb in _tokenButtons)
+        foreach(var tb in m_tokenButtons)
         {
             char chr;
             bool result = char.TryParse(tb.GetTokenValue(), out chr);
             if (result)
             {
-                tb.SetBackgroundColor(_bm.GetCellColor(validTokens, chr, false));
+                tb.SetBackgroundColor(m_boardManager.GetCellColor(validTokens, chr, false));
             }
         }
     }
 
     void GetBoardManager()
     {
-        _bm = gameObject.GetComponent<CellController>()._bm;
+        m_boardManager = gameObject.GetComponent<CellController>().BoardManager;
     }
 }

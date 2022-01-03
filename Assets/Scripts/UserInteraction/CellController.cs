@@ -17,8 +17,8 @@ public class CellController : MonoBehaviour
     private RectTransform rt;
     private TextMeshProUGUI buttonText;
 
-    public MasterController mc { get; set; }
-    public BoardManager _bm { get; set; }
+    public MasterController MasterController { get; set; }
+    public BoardManager BoardManager { get; set; }
     public int[] CellIndex = new int[3];
     public char CellChar { get; set; }
 
@@ -31,15 +31,15 @@ public class CellController : MonoBehaviour
 
     void OnValidate()
     {
-        if (!mc || !mc.stateManager) return;
+        if (!MasterController || !MasterController.stateManager) return;
 
-        mc.stateManager.BoardGivens[CellIndex[0], CellIndex[1], CellIndex[2]] = cellIsGiven ? 1 : 0;
-        _bm.UpdateAllCells();
+        MasterController.stateManager.BoardGivens[CellIndex[0], CellIndex[1], CellIndex[2]] = cellIsGiven ? 1 : 0;
+        BoardManager.UpdateAllCells();
     }
 
     void TaskOnClick()
     {
-        if (mc.stateManager.IsGiven(CellIndex)) return;
+        if (MasterController.stateManager.IsGiven(CellIndex)) return;
         GetComponent<TokenMenuManager>().OpenMenuAtCell(gameObject);
     }
 
@@ -76,7 +76,7 @@ public class CellController : MonoBehaviour
 
     public void UpdateCellValue(int[] cellIndex)
     {
-        CellChar = mc.stateManager.GetCellValue(cellIndex);
+        CellChar = MasterController.stateManager.GetCellValue(cellIndex);
         buttonText.text = CellChar.ToString();
     }
 
