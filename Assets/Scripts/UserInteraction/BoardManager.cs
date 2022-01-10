@@ -11,22 +11,95 @@ public class BoardManager : MonoBehaviour
      * 3. colors the background of all cells in a slice in order to provide hints to the user
     */
 
-    [SerializeField] private GameObject _cellContainer;
+    [SerializeField] private GameObject m_cellContainer;
+    [SerializeField] private TokenMenuManager m_tokenMenuManager;
 
-    private CellController[] _cells;
-    public MasterController masterController;
+    private CellController[] m_cells;
+    public MasterController masterController {get; set;}
 
     // these variables can be used to determine the slice to display
     private string _targetFaceName = string.Empty;
     private string _downwardFaceName = string.Empty;
     private int _depth = 0;
 
-    void Start()
+    public void UpdateAllCells()
     {
-        _cells = _cellContainer.GetComponentsInChildren<CellController>();
+        foreach(var cell in m_cells)
+        {
+            cell.UpdateCellValue(cell.CellIndex);
+        }
+        RefreshAllCellColors();
+    }
+
+    public void IncrementDepthAndUpdateCells(int depthDelta)
+    {
+        _depth = Mathf.Clamp(_depth + depthDelta, 0, 7);
+        SetIndexesForAllCells();
+        UpdateAllCells();
+        RefreshAllCellColors();
+    }
+
+    public void LoadOrbitCubeViewScene()
+    {
+        masterController.LoadScene("OrbitCubeViewScene");
+    }
+
+    // called by token selection menu
+    public void SetCellValue(int[] cellIndex, char cellValue)
+    {
+        masterController.stateManager.SetCellValue(cellIndex, cellValue);
+        RefreshAllCellColors();
+    }
+
+    public Color GetCellColor(HashSet<char> validTokens, char cellChar, bool isGiven = false)
+    {
+        if (!masterController.stateManager.TokenSet.Contains(cellChar))
+        {
+            return Colors.CELL_NORMAL; // get any space/empty chars
+        }
+        else if (isGiven)
+        {
+            return Colors.CELL_GIVEN;
+        }
+        else if (!validTokens.Contains(cellChar))
+        {
+            return Colors.CELL_CONFLICT;
+        }
+        else if (validTokens.Count == 1)
+        {
+            return Colors.CELL_GREEN;
+        }
+        else if (validTokens.Count < 4)
+        {
+            return Colors.CELL_YELLOW;
+        }
+        else
+        {
+            return Colors.CELL_NORMAL;
+        }
+    }
+
+    public void RefreshAllCellColors()
+    {
+        foreach (var cell in m_cells)
+        {
+            HashSet<char> validTokens = masterController.stateManager.GetValidTokensForCell(cell.CellIndex);
+
+            cell.SetBackgroundColor(GetCellColor(validTokens, cell.CellChar, masterController.stateManager.IsGiven(cell.CellIndex)));
+        }
+    }
+
+    public void OpenTokenMenuAtCell(GameObject cell)
+    {
+        m_tokenMenuManager.OpenMenuAtCell(cell);
+    }
+
+    private void Awake()
+    {
+        m_cells = m_cellContainer.GetComponentsInChildren<CellController>();
 
         masterController = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
-        AssignMCToCells(masterController);
+        AssignMCToCells();
 
         _targetFaceName = masterController.sliceTargetFaceName;
         _downwardFaceName = masterController.sliceDownwardFaceName;
@@ -38,15 +111,15 @@ public class BoardManager : MonoBehaviour
         RefreshAllCellColors();
     }
 
-    private void AssignMCToCells(MasterController mc)
+    private void AssignMCToCells()
     {
-        foreach(var cell in _cells)
+        foreach (var cell in m_cells)
         {
-            cell.MasterController = this.masterController;
+            cell.MasterController = masterController;
         }
     }
 
-    void SetIndexesForAllCells()
+    private void SetIndexesForAllCells()
     {
         // Assume a given downward face. For Back, Front, Left, and Right faces, assume that the Bottom face is downward.
         // For Top face, assume that the Back face is downward.
@@ -54,7 +127,7 @@ public class BoardManager : MonoBehaviour
         int index = 0;
 
         // iterate over the target cube face
-        foreach (var cell in _cells)
+        foreach (var cell in m_cells)
         {
             switch (_targetFaceName)
             {
@@ -123,91 +196,24 @@ public class BoardManager : MonoBehaviour
 
     }
 
-    internal void RefreshAllCellColors()
-    {
-        foreach (var cell in _cells)
-        {
-            HashSet<char> validTokens = masterController.stateManager.GetValidTokensForCell(cell.CellIndex);
-
-            cell.SetBackgroundColor(GetCellColor(validTokens, cell.CellChar, masterController.stateManager.IsGiven(cell.CellIndex)));
-        }
-    }
-
-    void RotateCellIndexesCW(int rotationsCW = 1)
+    private void RotateCellIndexesCW(int rotationsCW = 1)
     {
         int[] swap;
         int row, col;
-        for(int i = 0; i < rotationsCW; i++)
+        for (int i = 0; i < rotationsCW; i++)
         {
             for (row = 0; row < 4; row++)
             {
                 for (col = row; col < 7 - row; col++)
                 {
-                    // rotating a 2d array using 1d indexing, fun...
-                    swap = _cells[row * 8 + col].CellIndex;
-                    _cells[row * 8 + col].CellIndex = _cells[(7 - col) * 8 + row].CellIndex;
-                    _cells[(7 - col) * 8 + row].CellIndex = _cells[63 - (row * 8 + col)].CellIndex;
-                    _cells[63 - (row * 8 + col)].CellIndex = _cells[63 - ((7 - col) * 8 + row)].CellIndex;
-                    _cells[63 - ((7 - col) * 8 + row)].CellIndex = swap;
+                    // rotating a 2d array using 1d indexing
+                    swap = m_cells[row * 8 + col].CellIndex;
+                    m_cells[row * 8 + col].CellIndex = m_cells[(7 - col) * 8 + row].CellIndex;
+                    m_cells[(7 - col) * 8 + row].CellIndex = m_cells[63 - (row * 8 + col)].CellIndex;
+                    m_cells[63 - (row * 8 + col)].CellIndex = m_cells[63 - ((7 - col) * 8 + row)].CellIndex;
+                    m_cells[63 - ((7 - col) * 8 + row)].CellIndex = swap;
                 }
             }
-        }
-    }
-
-    public void UpdateAllCells()
-    {
-        foreach(var cell in _cells)
-        {
-            cell.UpdateCellValue(cell.CellIndex);
-        }
-        RefreshAllCellColors();
-    }
-
-    public void IncrementDepthAndUpdateCells(int depthDelta)
-    {
-        _depth = Mathf.Clamp(_depth + depthDelta, 0, 7);
-        SetIndexesForAllCells();
-        UpdateAllCells();
-        RefreshAllCellColors();
-    }
-
-    public void LoadOrbitCubeViewScene()
-    {
-        masterController.LoadScene("OrbitCubeViewScene");
-    }
-
-    // called by token selection menu
-    public void SetCellValue(int[] cellIndex, char cellValue)
-    {
-        masterController.stateManager.SetCellValue(cellIndex, cellValue);
-        RefreshAllCellColors();
-    }
-
-    public Color GetCellColor(HashSet<char> validTokens, char cellChar, bool isGiven = false)
-    {
-        if (!masterController.stateManager.TokenSet.Contains(cellChar))
-        {
-            return Colors.CELL_NORMAL;
-        }
-        else if (isGiven)
-        {
-            return Colors.CELL_GIVEN;
-        }
-        else if (!validTokens.Contains(cellChar))
-        {
-            return Colors.CELL_CONFLICT;
-        }
-        else if (validTokens.Count == 1)
-        {
-            return Colors.CELL_GREEN;
-        }
-        else if (validTokens.Count < 4)
-        {
-            return Colors.CELL_YELLOW;
-        }
-        else
-        {
-            return Colors.CELL_NORMAL;
         }
     }
 }

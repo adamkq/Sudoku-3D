@@ -38,7 +38,6 @@ public class MenuSelectPuzzle : MonoBehaviour
             pmb.SetTextOnButton(puzzleJson.puzzleTitle, GetDifficulty(puzzleJson.serializeBoardGivens), GetNumFilled(puzzleJson.serializeBoardState));
             pmb.MenuSelectPuzzle = gameObject.GetComponent<MenuSelectPuzzle>();
         }
-
     }
 
     private void ClearMenu()
@@ -59,6 +58,7 @@ public class MenuSelectPuzzle : MonoBehaviour
         }
 
         // this assumes only 1 valid solution per puzzle, and not that the puzzle is "wide-open" i.e. with many solutions
+        if (numGivens == 0) { return "Blank"; };
         if (numGivens < 100) { return "Hard"; };
         if (numGivens < 200) { return "Medium"; };
         return "Easy";
@@ -66,13 +66,13 @@ public class MenuSelectPuzzle : MonoBehaviour
 
     private int GetNumFilled(string serializedBoardState)
     {
-        int numGivens = 0;
+        int numFilled = 0;
 
         foreach (char chr in serializedBoardState)
         {
-            if (char.IsDigit(chr)) { numGivens++; };
+            if (char.IsDigit(chr) && chr != '0') { numFilled++; };
         }
 
-        return numGivens;
+        return numFilled;
     }
 }

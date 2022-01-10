@@ -59,10 +59,13 @@ public class StateManager : MonoBehaviour
         {
             for (int j = 0; j < BoardState.GetLength(1); j++)
             {
-                for (int k = 0; k < BoardState.GetLength(1); k++)
+                for (int k = 0; k < BoardState.GetLength(2); k++)
                 {
-                    BoardState[i, j, k] = puzzleJSON.serializeBoardState[i * 64 + j * 8 + k];
-                    BoardGivens[i, j, k] = puzzleJSON.serializeBoardGivens[i * 64 + j * 8 + k];
+                    char chr = puzzleJSON.serializeBoardGivens[i * 64 + j * 8 + k];
+                    BoardGivens[i, j, k] = chr;
+
+                    chr = puzzleJSON.serializeBoardState[i * 64 + j * 8 + k];
+                    BoardState[i, j, k] = chr == '0' ? ' ' : chr;
                 }
             }
         }
@@ -74,7 +77,7 @@ public class StateManager : MonoBehaviour
         {
             for (int j = 0; j < BoardState.GetLength(1); j++)
             {
-                for (int k = 0; k < BoardState.GetLength(1); k++)
+                for (int k = 0; k < BoardState.GetLength(2); k++)
                 {
                     BoardState[i, j, k] = ' ';
                     BoardGivens[i, j, k] = 0;

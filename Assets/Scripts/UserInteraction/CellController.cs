@@ -9,43 +9,23 @@ public class CellController : MonoBehaviour
     // 2. Show a popup menu when the cell is tapped
     // 3. Update the character in response to popup menu selection
 
+    public MasterController MasterController { get; set; }
+    public BoardManager BoardManager;
+    public int[] CellIndex = new int[3];
+    public char CellChar { get; set; }
+
     [SerializeField] private Button button;
     [SerializeField] private Image image;
     [Tooltip("Used by OnValidate to set the cell as given/not given")]
     [SerializeField] private bool cellIsGiven;
 
-    private RectTransform rt;
     private TextMeshProUGUI buttonText;
 
-    public MasterController MasterController { get; set; }
-    public BoardManager BoardManager { get; set; }
-    public int[] CellIndex = new int[3];
-    public char CellChar { get; set; }
-
-    void Awake()
+    public void TaskOnClick()
     {
-        rt = gameObject.GetComponent<RectTransform>();
-        button.onClick.AddListener(TaskOnClick);
-        buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
-    }
-
-    void OnValidate()
-    {
-        if (!MasterController || !MasterController.stateManager) return;
-
-        MasterController.stateManager.BoardGivens[CellIndex[0], CellIndex[1], CellIndex[2]] = cellIsGiven ? 1 : 0;
-        BoardManager.UpdateAllCells();
-    }
-
-    void TaskOnClick()
-    {
+        // givens can't be changed, so no need to open a menu
         if (MasterController.stateManager.IsGiven(CellIndex)) return;
-        GetComponent<TokenMenuManager>().OpenMenuAtCell(gameObject);
-    }
-
-    public void SetRectTransformSize(int width, int height)
-    {
-        rt.sizeDelta = new Vector2(width, height);
+        BoardManager.OpenTokenMenuAtCell(gameObject);
     }
 
     // this is called by BoardManager whenever the slice is updated
@@ -83,5 +63,19 @@ public class CellController : MonoBehaviour
     public void SetBackgroundColor(Color color)
     {
         image.color = color;
+    }
+
+    void Awake()
+    {
+        button.onClick.AddListener(TaskOnClick);
+        buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+    }
+
+    void OnValidate()
+    {
+        if (!MasterController || !MasterController.stateManager) return;
+
+        MasterController.stateManager.BoardGivens[CellIndex[0], CellIndex[1], CellIndex[2]] = cellIsGiven ? 1 : 0;
+        BoardManager.UpdateAllCells();
     }
 }

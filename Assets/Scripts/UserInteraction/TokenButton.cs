@@ -10,16 +10,15 @@ public class TokenButton : MonoBehaviour
 
     void Awake()
     {
-        button.onClick.AddListener(TaskOnClick);
+        // this is the unique value of the TokenButton
         ButtonText = button.GetComponentInChildren<TextMeshProUGUI>().text;
     }
 
-    void TaskOnClick()
+    public void MakeSelection()
     {
         char chr;
-        bool result = char.TryParse(ButtonText, out chr);
 
-        if (result)
+        if (char.TryParse(ButtonText, out chr))
         {
             tokenMenuManager.MakeSelection(chr);
             return;

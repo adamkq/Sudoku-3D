@@ -79,7 +79,16 @@ public class PuzzleSave : MonoBehaviour
             {
                 for (int kk = 0; kk < board.GetLength(2); kk++)
                 {
-                    sb.Append(board[ii, jj, kk]);
+                    // avoids large whitespace string in JSON; zero-to-space conversion made in StateManager
+                    char chr = board[ii, jj, kk];
+                    if (chr == ' ')
+                    {
+                        sb.Append('0');
+                    }
+                    else
+                    {
+                        sb.Append(chr);
+                    }
                 }
             }
         }
