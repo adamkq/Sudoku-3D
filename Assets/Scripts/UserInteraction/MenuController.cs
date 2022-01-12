@@ -6,13 +6,12 @@ public class MenuController : MonoBehaviour
 {
     private MasterController m_masterController;
 
-    [SerializeField] private GameObject m_menuStart;
-    [SerializeField] private GameObject m_menuSelectPuzzle;
+    [SerializeField] private GameObject m_MenuParentObj;
     
     void Start()
     {
         m_masterController = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
-        m_menuSelectPuzzle.SetActive(false);
+        OnClickSetChildOnlyActive(0);
     }
 
     public void MenuLoadScene(string sceneName)
@@ -20,9 +19,21 @@ public class MenuController : MonoBehaviour
         m_masterController.LoadScene(sceneName);
     }
 
-    public void OnClickGoToMenuSelectPuzzle()
+    // set one menu active and disable all others
+    public void OnClickSetChildOnlyActive(int child)
     {
-        m_menuSelectPuzzle.SetActive(true);
-        m_menuStart.SetActive(false);
+        for (int i = 0; i < m_MenuParentObj.transform.childCount; i++)
+        {
+            GameObject menu = m_MenuParentObj.transform.GetChild(i).gameObject;
+
+            if (i == child)
+            {
+                menu.SetActive(true);
+            }
+            else
+            {
+                menu.SetActive(false);
+            }
+        }
     }
 }
