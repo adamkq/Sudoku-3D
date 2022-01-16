@@ -37,6 +37,7 @@ public class BoardManager : MonoBehaviour
         SetIndexesForAllCells();
         UpdateAllCells();
         RefreshAllCellColors();
+        RefreshAllCellTints();
     }
 
     public void LoadOrbitCubeViewScene()
@@ -53,13 +54,13 @@ public class BoardManager : MonoBehaviour
 
     public Color GetCellColor(HashSet<char> validTokens, char cellChar, bool isGiven = false)
     {
-        if (!masterController.stateManager.TokenSet.Contains(cellChar))
-        {
-            return Colors.CELL_NORMAL; // get any space/empty chars
-        }
-        else if (isGiven)
+        if (isGiven)
         {
             return Colors.CELL_GIVEN;
+        }
+        else if (!masterController.stateManager.TokenSet.Contains(cellChar))
+        {
+            return Colors.CELL_NORMAL; // get any space/empty chars
         }
         else if (!validTokens.Contains(cellChar))
         {
@@ -106,9 +107,7 @@ public class BoardManager : MonoBehaviour
 
         Debug.LogFormat("{0}, {1}", _targetFaceName, _downwardFaceName);
 
-        SetIndexesForAllCells();
-        UpdateAllCells();
-        RefreshAllCellColors();
+        IncrementDepthAndUpdateCells(0);
     }
 
     private void AssignMCToCells()
@@ -214,6 +213,21 @@ public class BoardManager : MonoBehaviour
                     m_cells[63 - ((7 - col) * 8 + row)].CellIndex = swap;
                 }
             }
+        }
+    }
+
+    private void RefreshAllCellTints()
+    {
+        // set tint based on alternating subcubes of cell; this should help user navigate/understand the board
+        foreach (var cell in m_cells)
+        {
+            int even = (cell.CellIndex[0] - cell.CellIndex[0] % 2) +
+                       (cell.CellIndex[1] - cell.CellIndex[1] % 2) +
+                       (cell.CellIndex[2] - cell.CellIndex[2] % 2);
+
+            Color tintColor = even % 4 == 0 ? new Color(1, 1, 1) : new Color(0.85f, 0.85f, 0.85f);
+
+            cell.SetTint(tintColor);
         }
     }
 }

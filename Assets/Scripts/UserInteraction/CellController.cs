@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic;
 
 public class CellController : MonoBehaviour
 {
@@ -23,9 +24,17 @@ public class CellController : MonoBehaviour
 
     public void TaskOnClick()
     {
-        // givens can't be changed, so no need to open a menu
-        if (MasterController.stateManager.IsGiven(CellIndex)) return;
-        BoardManager.OpenTokenMenuAtCell(gameObject);
+        // shift-click to toggle givens
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            ToggleCellIsGiven();
+        }
+        else
+        {
+            // givens can't be changed, so no need to open a menu
+            if (MasterController.stateManager.IsGiven(CellIndex)) return;
+            BoardManager.OpenTokenMenuAtCell(gameObject);
+        }
     }
 
     // this is called by BoardManager whenever the slice is updated
@@ -46,7 +55,7 @@ public class CellController : MonoBehaviour
             }
         }
 
-        this.CellIndex = cellIndex;
+        CellIndex = cellIndex;
     }
 
     public void UpdateCellValue()
@@ -65,17 +74,27 @@ public class CellController : MonoBehaviour
         image.color = color;
     }
 
+    public void SetTint(Color color)
+    {
+        ColorBlock colorBlock = button.colors;
+
+        colorBlock.normalColor = color;
+        colorBlock.highlightedColor = color;
+        colorBlock.pressedColor = color;
+        colorBlock.selectedColor = color;
+
+        button.colors = colorBlock;
+    }
+
     void Awake()
     {
-        button.onClick.AddListener(TaskOnClick);
         buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
     }
 
-    void OnValidate()
+    void ToggleCellIsGiven()
     {
-        if (!MasterController || !MasterController.stateManager) return;
+        MasterController.stateManager.BoardGivens[CellIndex[0], CellIndex[1], CellIndex[2]] = MasterController.stateManager.IsGiven(CellIndex) ? 0 : 1;
 
-        MasterController.stateManager.BoardGivens[CellIndex[0], CellIndex[1], CellIndex[2]] = cellIsGiven ? 1 : 0;
-        BoardManager.UpdateAllCells();
+        SetBackgroundColor(BoardManager.GetCellColor(new HashSet<char>() { 'X' }, 'X', MasterController.stateManager.IsGiven(CellIndex)));
     }
 }

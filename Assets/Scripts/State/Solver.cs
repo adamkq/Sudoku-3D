@@ -121,6 +121,7 @@ public class Solver : MonoBehaviour
     public int SolveBacktrack(char[,,] boardState, int maxNumberOfSolutions = 1)
     {
         int numberOfSolutionsFound = 0;
+        int recursiveCalls = 0;
 
         bool SolveBacktrackRecursive(char[,,] _boardState, int cellIndexSerialized = 0)
         {
@@ -129,6 +130,10 @@ public class Solver : MonoBehaviour
              * 2. Iterate through all options in the cell.
              * 3. Apply each option and call this inner function recursively
              */
+
+            // blank board takes 1428 calls to solve
+            recursiveCalls += 1;
+            if (recursiveCalls > Math.Max(1500 * maxNumberOfSolutions, 99999)) return false;
 
             // stop early
             if (numberOfSolutionsFound >= maxNumberOfSolutions) return true;
@@ -153,6 +158,7 @@ public class Solver : MonoBehaviour
 
             if (m_stateManager.IsGiven(cellIndex)) throw new Exception("Solver tried to modify given cell");
 
+            // recurse on next cell
             char storeChr = _boardState[cellIndex[0], cellIndex[1], cellIndex[2]];
 
             foreach (char chr in GetValidTokensForCell(_boardState, cellIndex))
@@ -182,6 +188,8 @@ public class Solver : MonoBehaviour
         }
 
         SolveBacktrackRecursive(boardState);
+
+        Debug.Log(recursiveCalls);
 
         return numberOfSolutionsFound;
     }

@@ -62,7 +62,6 @@ public class TokenMenuManager : MonoBehaviour
     // tapping on the blocking panel (outside the menu) will call this method
     public void CloseMenu()
     {
-        Debug.Log("CloseMenu");
         m_tokenMenu.SetActive(false);
     }
 
