@@ -24,15 +24,14 @@ public class SolverButton : MonoBehaviour
     void TaskOnClick()
     {
         bool isSolved = m_masterController.solver.IsSolved(m_masterController.stateManager.BoardState);
-        Debug.Log(isSolved);
-
+        
         if (isSolved)
         {
             m_masterController.stateManager.ResetBoard();
         }
         else
         {
-            int numSolutions = m_masterController.solver.SolveBacktrack(m_masterController.stateManager.BoardState, 10);
+            int numSolutions = m_masterController.solver.SolveBacktrack(m_masterController.stateManager.BoardState, 1);
             Debug.Log(numSolutions);
         }
         m_BoardManager.UpdateAllCells();
