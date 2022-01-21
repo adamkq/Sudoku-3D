@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,6 +7,44 @@ public class Solver : MonoBehaviour
 {
     private MasterController _mc;
     private StateManager m_stateManager;
+
+    [SerializeField] private int m_maxNumberOfSolutions = 1;
+    [SerializeField] private bool solve;
+    [SerializeField] private bool clear;
+
+    public BoardManager BoardManager { get; set; }
+
+    private void OnValidate()
+    {
+        if (solve)
+        {
+            solve = false;
+
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            int solutions = SolveBacktrack(m_stateManager.BoardState, m_maxNumberOfSolutions);
+            watch.Stop();
+
+            Debug.LogFormat("Found {0} solutions in {1} seconds",solutions, watch.ElapsedMilliseconds / 1000f);
+        }
+
+        if (clear)
+        {
+            clear = false;
+            for (int ii = 0; ii < 8; ii++)
+            {
+                for (int jj = 0; jj < 8; jj++)
+                {
+                    for (int kk = 0; kk < 8; kk++)
+                    {
+                        int[] cellIndex = new int[] { ii, jj, kk };
+                        if (!m_stateManager.IsGiven(cellIndex)) m_stateManager.BoardState[ii, jj, kk] = ' ';
+                    }
+                }
+            }
+        }
+
+        if (BoardManager) BoardManager.UpdateAllCells();
+    }
 
     void Awake()
     {
@@ -137,13 +174,10 @@ public class Solver : MonoBehaviour
 
             // blank board takes 1428 calls to solve
             recursiveCalls += 1;
-            if (recursiveCalls > Math.Max(1500 * maxNumberOfSolutions, 999999)) return false;
-
-            // stop if enough solutions have been found
-            if (numberOfSolutionsFound >= maxNumberOfSolutions) return true;
+            if (recursiveCalls > Math.Max(1500 * maxNumberOfSolutions, 99999999)) return false;
 
             // Check solution
-            if (IsSolved(_boardState))
+            if (cellIndexSerialized > 511)
             {
                 numberOfSolutionsFound += 1;
                 return true;
@@ -167,21 +201,18 @@ public class Solver : MonoBehaviour
 
             HashSet<char> validTokens = GetValidTokensForCell(_boardState, cellIndex);
 
-            // reduce search space
-            List<char> validTokensWithAtLeastOneOption = LeaveAtLeastOneValidTokenPerEmptyCell(_boardState, cellIndex, validTokens).ToList();
-
-            //var rnd = new System.Random();
-            //var randomized = validTokensWithAtLeastOneOption.OrderBy(item => rnd.Next()).ToList();
-
-            foreach (char chr in validTokensWithAtLeastOneOption)
+            foreach (char chr in validTokens)
             {
                 _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = chr;
 
                 // recurse on next cell
-                if (SolveBacktrackRecursive(_boardState, cellIndexSerialized + 1) && numberOfSolutionsFound >= maxNumberOfSolutions) return true;
+                //if (SolveBacktrackRecursive(_boardState, cellIndexSerialized + 1)) return true;
+                SolveBacktrackRecursive(_boardState, cellIndexSerialized + 1);
 
-                _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = storeChr; // leave board unmodified in case of no solution
-            }   
+                if (maxNumberOfSolutions >= 0 && numberOfSolutionsFound >= maxNumberOfSolutions) return true;
+
+            }
+            _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = storeChr; // leave board unmodified in case of no solution
 
             return false;
         }
@@ -202,7 +233,7 @@ public class Solver : MonoBehaviour
 
         SolveBacktrackRecursive(boardState);
 
-        Debug.Log(recursiveCalls);
+        Debug.Log("Recursive calls: " + recursiveCalls);
 
         return numberOfSolutionsFound;
     }
@@ -216,71 +247,4 @@ public class Solver : MonoBehaviour
 
         return new int[] { rowIndex, columnIndex, pageIndex };
     }
-
-    private HashSet<char> LeaveAtLeastOneValidTokenPerEmptyCell(char[,,] boardState, int[] cellIndex, HashSet<char> validTokens)
-    {
-        // scan all cells that could be affected by the choice, and of those that are empty,
-        // check that they will still have valid tokens after the choice is made
-
-        // copy validTokens, then remove ones that don't fit criteria
-        HashSet<char> validTokensAtLeastOneOption = new HashSet<char>(validTokens);
-        HashSet<char> excludeSet = new HashSet<char>();
-
-        foreach(var chr in validTokens)
-        {
-            for (int i = 0; i < 8; i++)
-            {
-                HashSet<char> _validTokens;
-
-                // scan vertically thru rows; no self-check and only check empty cells
-                if (i != cellIndex[0] && boardState[i, cellIndex[1], cellIndex[2]] == ' ')
-                {
-                    _validTokens = GetValidTokensForCell(boardState, new int[] { i, cellIndex[1], cellIndex[2] });
-                    if (_validTokens.Count == 1 && _validTokens.Contains(chr)) excludeSet.Add(chr);
-                }
-
-                // scan horizontally thru columns
-                if (i != cellIndex[1] && boardState[cellIndex[0], i, cellIndex[2]] == ' ')
-                {
-                    _validTokens = GetValidTokensForCell(boardState, new int[] { cellIndex[0], i, cellIndex[2] });
-                    if (_validTokens.Count == 1 && _validTokens.Contains(chr)) excludeSet.Add(chr);
-                }
-
-                // scan depth-wise thru planes
-                if (i != cellIndex[2] && boardState[cellIndex[0], cellIndex[1], i] == ' ')
-                {
-                    _validTokens = GetValidTokensForCell(boardState, new int[] { cellIndex[0], cellIndex[1], i });
-                    if (_validTokens.Count == 1 && _validTokens.Contains(chr)) excludeSet.Add(chr);
-                }
-
-                // stop early
-                if (validTokens.SetEquals(excludeSet)) return new HashSet<char>();
-            }
-
-            // check cubeset
-            // find the corner cell for the cubeset, then iterate over all 8 cells
-            int rowIndex, colIndex, planeIndex;
-            for (int i = 0; i < 8; i++)
-            {
-                HashSet<char> _validTokens;
-
-                rowIndex = cellIndex[0] - cellIndex[0] % 2 + i / 4;
-                colIndex = cellIndex[1] - cellIndex[1] % 2 + i / 2 % 2;
-                planeIndex = cellIndex[2] - cellIndex[2] % 2 + i % 2;
-
-                // no self-conflict; if the cell being checked is the given cell, skip
-                if (rowIndex == cellIndex[0] && colIndex == cellIndex[1] && planeIndex == cellIndex[2] || boardState[cellIndex[0], cellIndex[1], i] != ' ') continue;
-
-                _validTokens = GetValidTokensForCell(boardState, new int[] { rowIndex, colIndex, planeIndex });
-                if (_validTokens.Count == 1 && _validTokens.Contains(chr)) excludeSet.Add(chr);
-
-                // stop early
-                if (validTokens.SetEquals(excludeSet)) return new HashSet<char>();
-            }
-        }
-
-        validTokensAtLeastOneOption.ExceptWith(excludeSet);
-        return validTokensAtLeastOneOption;
-    }
-
 }

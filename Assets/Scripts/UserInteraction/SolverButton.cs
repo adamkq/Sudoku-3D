@@ -6,9 +6,9 @@ public class SolverButton : MonoBehaviour
 {
     [SerializeField] private Button button;
     [SerializeField] private BoardManager m_BoardManager;
+    [SerializeField] private int m_maxNumberOfSolutions = 1;
     private MasterController m_masterController;
     private TextMeshProUGUI _buttonText;
-    
 
     void Awake()
     {
@@ -31,7 +31,7 @@ public class SolverButton : MonoBehaviour
         }
         else
         {
-            int numSolutions = m_masterController.solver.SolveBacktrack(m_masterController.stateManager.BoardState, 1);
+            int numSolutions = m_masterController.solver.SolveBacktrack(m_masterController.stateManager.BoardState, m_maxNumberOfSolutions);
             Debug.Log(numSolutions);
         }
         m_BoardManager.UpdateAllCells();

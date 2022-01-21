@@ -22,6 +22,11 @@ public class BoardManager : MonoBehaviour
     private string _downwardFaceName = string.Empty;
     private int _depth = 0;
 
+    public void Start()
+    {
+        Solver solver = GameObject.Find("Solver").GetComponent<Solver>();
+        solver.BoardManager = gameObject.GetComponent<BoardManager>();
+    }
     public void UpdateAllCells()
     {
         foreach(var cell in m_cells)
@@ -36,7 +41,6 @@ public class BoardManager : MonoBehaviour
         _depth = Mathf.Clamp(_depth + depthDelta, 0, 7);
         SetIndexesForAllCells();
         UpdateAllCells();
-        RefreshAllCellColors();
         RefreshAllCellTints();
     }
 
@@ -58,11 +62,7 @@ public class BoardManager : MonoBehaviour
         {
             return Colors.CELL_GIVEN;
         }
-        else if (!masterController.stateManager.TokenSet.Contains(cellChar))
-        {
-            return Colors.CELL_NORMAL; // get any space/empty chars
-        }
-        else if (!validTokens.Contains(cellChar))
+        else if (!validTokens.Contains(cellChar) && cellChar != ' ' || validTokens.Count == 0)
         {
             return Colors.CELL_CONFLICT;
         }
