@@ -11,7 +11,6 @@ public class MenuSelectPuzzle : MonoBehaviour
     public void MenuButtonClicked(int buttonIndex)
     {
         m_masterController.InitializePuzzle(m_masterController.GetAllPuzzles()[buttonIndex]);
-        m_masterController.LoadScene("OrbitCubeViewScene");
     }
 
     private void Awake()

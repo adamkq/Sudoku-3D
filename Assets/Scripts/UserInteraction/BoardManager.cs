@@ -38,15 +38,15 @@ public class BoardManager : MonoBehaviour
 
     public void IncrementDepthAndUpdateCells(int depthDelta)
     {
-        _depth = Mathf.Clamp(_depth + depthDelta, 0, 7);
+        _depth = Mathf.Clamp(_depth + depthDelta, 0, 1);
         SetIndexesForAllCells();
         UpdateAllCells();
         RefreshAllCellTints();
     }
 
-    public void LoadOrbitCubeViewScene()
+    public void ExitToMainMenu()
     {
-        masterController.LoadScene("OrbitCubeViewScene");
+        masterController.LoadScene("MainMenu");
     }
 
     // called by token selection menu
@@ -120,9 +120,7 @@ public class BoardManager : MonoBehaviour
 
     private void SetIndexesForAllCells()
     {
-        // Assume a given downward face. For Back, Front, Left, and Right faces, assume that the Bottom face is downward.
-        // For Top face, assume that the Back face is downward.
-        // For Bottom face, assume that the Front face is downward.
+        // In Sandwich Sudoku, only the Back Face is needed here
         int index = 0;
 
         // iterate over the target cube face
@@ -154,47 +152,9 @@ public class BoardManager : MonoBehaviour
             }
             index += 1;
         }
-
-        // rotate depending on the downward face
-        switch (_targetFaceName)
-        {
-            case "CubeFaceBack":
-                if (_downwardFaceName == "CubeFaceLeft") RotateCellIndexesCW(3);
-                else if (_downwardFaceName == "CubeFaceTop") RotateCellIndexesCW(2);
-                else if (_downwardFaceName == "CubeFaceRight") RotateCellIndexesCW(1);
-                break;
-            case "CubeFaceFront":
-                if (_downwardFaceName == "CubeFaceRight") RotateCellIndexesCW(3);
-                else if (_downwardFaceName == "CubeFaceTop") RotateCellIndexesCW(2);
-                else if (_downwardFaceName == "CubeFaceLeft") RotateCellIndexesCW(1);
-                break;
-            case "CubeFaceLeft":
-                if (_downwardFaceName == "CubeFaceFront") RotateCellIndexesCW(3);
-                else if (_downwardFaceName == "CubeFaceTop") RotateCellIndexesCW(2);
-                else if (_downwardFaceName == "CubeFaceBack") RotateCellIndexesCW(1);
-                break;
-            case "CubeFaceRight":
-                if (_downwardFaceName == "CubeFaceBack") RotateCellIndexesCW(3);
-                else if (_downwardFaceName == "CubeFaceTop") RotateCellIndexesCW(2);
-                else if (_downwardFaceName == "CubeFaceFront") RotateCellIndexesCW(1);
-                break;
-            case "CubeFaceBottom":
-                if (_downwardFaceName == "CubeFaceLeft") RotateCellIndexesCW(3);
-                else if (_downwardFaceName == "CubeFaceBack") RotateCellIndexesCW(2);
-                else if (_downwardFaceName == "CubeFaceRight") RotateCellIndexesCW(1);
-                break;
-            case "CubeFaceTop":
-                if (_downwardFaceName == "CubeFaceLeft") RotateCellIndexesCW(3);
-                else if (_downwardFaceName == "CubeFaceFront") RotateCellIndexesCW(2);
-                else if (_downwardFaceName == "CubeFaceRight") RotateCellIndexesCW(1);
-                break;
-            default:
-                Debug.LogError("Cube Downward Face name not found.");
-                break;
-        }
-
     }
 
+    // Not needed for Sandwich Sudoku refactor, but may be a handy reference for other projects
     private void RotateCellIndexesCW(int rotationsCW = 1)
     {
         int[] swap;

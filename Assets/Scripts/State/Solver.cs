@@ -163,6 +163,7 @@ public class Solver : MonoBehaviour
     {
         int numberOfSolutionsFound = 0;
         int recursiveCalls = 0;
+        var rand = new System.Random();
 
         bool SolveBacktrackRecursive(char[,,] _boardState, int cellIndexSerialized = 0)
         {
@@ -205,12 +206,9 @@ public class Solver : MonoBehaviour
             {
                 _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = chr;
 
-                // recurse on next cell
-                //if (SolveBacktrackRecursive(_boardState, cellIndexSerialized + 1)) return true;
                 SolveBacktrackRecursive(_boardState, cellIndexSerialized + 1);
 
                 if (maxNumberOfSolutions >= 0 && numberOfSolutionsFound >= maxNumberOfSolutions) return true;
-
             }
             _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = storeChr; // leave board unmodified in case of no solution
 
