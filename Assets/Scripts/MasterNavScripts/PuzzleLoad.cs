@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 public class PuzzleLoad : MonoBehaviour
 {
@@ -40,6 +41,9 @@ public class PuzzleLoad : MonoBehaviour
 
         foreach (var jsonfile in Directory.GetFiles(Directories.SAVED_PUZZLES))
         {
+            string filenameOnly = jsonfile.Split('/').Last();
+            if (filenameOnly[0] == '.') continue; //.DS_Store
+
             try
             {
                 using (StreamReader sr = new StreamReader(jsonfile))

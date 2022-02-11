@@ -18,10 +18,8 @@ public class StateManager : MonoBehaviour
     {
         DontDestroyOnLoad(gameObject);
 
-        BoardState = new char[8, 8, 8];
-        BoardGivens = new int[8, 8, 8];
-
-        // ResetBoard();
+        BoardState = new char[8, 8, 2];
+        BoardGivens = new int[8, 8, 2];
 
         // the set of symbols that the user can put into each cell; does not include the empty option
         TokenSet = new HashSet<char>() { '1', '2', '3', '4', '5', '6', '7', '8' };
@@ -61,10 +59,10 @@ public class StateManager : MonoBehaviour
             {
                 for (int k = 0; k < BoardState.GetLength(2); k++)
                 {
-                    char chr = puzzleJSON.serializeBoardGivens[i * 64 + j * 8 + k];
+                    char chr = puzzleJSON.serializeBoardGivens[i * 16 + j * 2 + k];
                     BoardGivens[i, j, k] = chr;
 
-                    chr = puzzleJSON.serializeBoardState[i * 64 + j * 8 + k];
+                    chr = puzzleJSON.serializeBoardState[i * 16 + j * 2 + k];
                     BoardState[i, j, k] = chr == '0' ? ' ' : chr;
                 }
             }

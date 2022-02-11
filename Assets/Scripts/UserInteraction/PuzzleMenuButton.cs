@@ -13,7 +13,7 @@ public class PuzzleMenuButton : MonoBehaviour
     public void SetTextOnButton(string puzzleTitle, string puzzleDifficulty, int cellsFilled)
     {
         m_textTitle.text = puzzleTitle;
-        m_textDetails.text = puzzleDifficulty + ", " + cellsFilled + "/512 cells filled";
+        m_textDetails.text = puzzleDifficulty + ", " + cellsFilled + "/128 cells filled";
     }
 
     public void OnPuzzleSelected()

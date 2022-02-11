@@ -58,8 +58,8 @@ public class MenuSelectPuzzle : MonoBehaviour
 
         // this assumes only 1 valid solution per puzzle, and not that the puzzle is "wide-open" i.e. with many solutions
         if (numGivens == 0) { return "Blank"; };
-        if (numGivens < 100) { return "Hard"; };
-        if (numGivens < 200) { return "Medium"; };
+        if (numGivens < 35) { return "Hard"; };
+        if (numGivens < 70) { return "Medium"; };
         return "Easy";
     }
 

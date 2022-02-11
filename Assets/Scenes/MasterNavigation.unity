@@ -198,7 +198,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de44c44f8a5ab44188a274d4e226145c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _mc: {fileID: 105735855}
+  m_masterController: {fileID: 105735855}
   m_puzzleName: 
   m_SaveButton: 0
 --- !u!4 &427330596

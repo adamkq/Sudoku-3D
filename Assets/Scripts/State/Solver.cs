@@ -34,7 +34,7 @@ public class Solver : MonoBehaviour
             {
                 for (int jj = 0; jj < 8; jj++)
                 {
-                    for (int kk = 0; kk < 8; kk++)
+                    for (int kk = 0; kk < 2; kk++)
                     {
                         int[] cellIndex = new int[] { ii, jj, kk };
                         if (!m_stateManager.IsGiven(cellIndex)) m_stateManager.BoardState[ii, jj, kk] = ' ';
@@ -77,7 +77,7 @@ public class Solver : MonoBehaviour
             if (i != cellIndex[1]) ExcludeSet.Add(boardState[cellIndex[0], i, cellIndex[2]]);
 
             // scan depth-wise thru planes
-            if (i != cellIndex[2]) ExcludeSet.Add(boardState[cellIndex[0], cellIndex[1], i]);
+            //if (i != cellIndex[2]) ExcludeSet.Add(boardState[cellIndex[0], cellIndex[1], i]);
         }
 
         // check cubeset
@@ -128,14 +128,14 @@ public class Solver : MonoBehaviour
             }
 
             // planeset; column and row fixed
-            subSet.Clear();
-            for (int i = 0; i < 8; i++)
-            {
-                chr = boardState[setID / 8, setID % 8, i];
-                if (!m_stateManager.TokenSet.Contains(chr)) return false; // clear/blank cells
-                if (subSet.Contains(chr)) return false; // duplicate cells
-                subSet.Add(chr);
-            }
+            //subSet.Clear();
+            //for (int i = 0; i < 8; i++)
+            //{
+            //    chr = boardState[setID / 8, setID % 8, i];
+            //    if (!m_stateManager.TokenSet.Contains(chr)) return false; // clear/blank cells
+            //    if (subSet.Contains(chr)) return false; // duplicate cells
+            //    subSet.Add(chr);
+            //}
 
             // cubeset
             subSet.Clear();
@@ -163,7 +163,6 @@ public class Solver : MonoBehaviour
     {
         int numberOfSolutionsFound = 0;
         int recursiveCalls = 0;
-        var rand = new System.Random();
 
         bool SolveBacktrackRecursive(char[,,] _boardState, int cellIndexSerialized = 0)
         {
@@ -173,12 +172,11 @@ public class Solver : MonoBehaviour
              * 3. Apply each option and call this inner function recursively
              */
 
-            // blank board takes 1428 calls to solve
             recursiveCalls += 1;
-            if (recursiveCalls > Math.Max(1500 * maxNumberOfSolutions, 99999999)) return false;
+            if (recursiveCalls > Math.Max(1000 * maxNumberOfSolutions, 99999999)) return false;
 
             // Check solution
-            if (cellIndexSerialized > 511)
+            if (cellIndexSerialized > 127)
             {
                 numberOfSolutionsFound += 1;
                 return true;
@@ -193,7 +191,7 @@ public class Solver : MonoBehaviour
             }
 
             // safeguards
-            if (cellIndex.Max() > 7) throw new Exception("Index out of range error in solver");
+            if (cellIndex[0] > 7 || cellIndex[1] > 7 || cellIndex[2] > 1) throw new Exception("Index out of range error in solver");
 
             if (m_stateManager.IsGiven(cellIndex)) throw new Exception("Solver tried to modify given cell");
 
@@ -207,7 +205,7 @@ public class Solver : MonoBehaviour
                 _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = chr;
 
                 SolveBacktrackRecursive(_boardState, cellIndexSerialized + 1);
-
+                
                 if (maxNumberOfSolutions >= 0 && numberOfSolutionsFound >= maxNumberOfSolutions) return true;
             }
             _boardState[cellIndex[0], cellIndex[1], cellIndex[2]] = storeChr; // leave board unmodified in case of no solution
@@ -220,7 +218,7 @@ public class Solver : MonoBehaviour
         {
             for (int jj = 0; jj < 8; jj++)
             {
-                for (int kk = 0; kk < 8; kk++)
+                for (int kk = 0; kk < 2; kk++)
                 {
                     int[] cellIndex = new int[] { ii, jj, kk };
                     HashSet<char> validTokens = GetValidTokensForCell(boardState, cellIndex);
@@ -238,10 +236,10 @@ public class Solver : MonoBehaviour
 
     private int[] DeserializeCell(int cellIndexSerialized)
     {
-        // cIS = row * 64 + col * 8 + pageIndex
-        int pageIndex = cellIndexSerialized % 8;
-        int columnIndex = (cellIndexSerialized / 8) % 64 % 8;
-        int rowIndex = (cellIndexSerialized - columnIndex * 8 - pageIndex) / 64;
+        // cIS = row * 16 + col * 2 + pageIndex (sandwich sudoku)
+        int pageIndex = cellIndexSerialized % 2;
+        int columnIndex = cellIndexSerialized / 2 % 8;
+        int rowIndex = (cellIndexSerialized - columnIndex * 2 - pageIndex) / 16;
 
         return new int[] { rowIndex, columnIndex, pageIndex };
     }
