@@ -60,10 +60,19 @@ public class StateManager : MonoBehaviour
                 for (int k = 0; k < BoardState.GetLength(2); k++)
                 {
                     char chr = puzzleJSON.serializeBoardGivens[i * 16 + j * 2 + k];
-                    BoardGivens[i, j, k] = chr;
+                    int val;
+                    try
+                    {
+                        val = int.Parse(chr.ToString());
+                        BoardGivens[i, j, k] = val;
 
-                    chr = puzzleJSON.serializeBoardState[i * 16 + j * 2 + k];
-                    BoardState[i, j, k] = chr == '0' ? ' ' : chr;
+                        chr = puzzleJSON.serializeBoardState[i * 16 + j * 2 + k];
+                        BoardState[i, j, k] = chr == '0' ? ' ' : chr;
+                    }
+                    catch
+                    {
+                        Debug.LogError("Error Parsing Selected File");
+                    }
                 }
             }
         }

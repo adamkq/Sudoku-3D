@@ -45,6 +45,5 @@ public class MasterController : MonoBehaviour
         // set the stateManager w/ the givens and the state.
         stateManager.InitializePuzzle(puzzleJSON);
         TransitionToSliceView("CubeFaceBack", "CubeFaceBottom");
-        //LoadScene("OrbitCubeViewScene");
     }
 }

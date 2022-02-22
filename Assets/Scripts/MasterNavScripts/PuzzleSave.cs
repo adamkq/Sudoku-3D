@@ -61,8 +61,7 @@ public class PuzzleSave : MonoBehaviour
             {
                 for (int kk = 0; kk < board.GetLength(2); kk++)
                 {
-                    string entry = board[ii, jj, kk].ToString();
-                    sb.Append(entry == "0" ? '0' : '1');
+                    sb.Append(board[ii, jj, kk] == 0 ? '0' : '1');
                 }
             }
         }
