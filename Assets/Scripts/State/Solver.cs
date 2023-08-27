@@ -12,8 +12,6 @@ public class Solver : MonoBehaviour
     [SerializeField] private bool solve;
     [SerializeField] private bool clear;
 
-    public BoardManager BoardManager { get; set; }
-
     private void OnValidate()
     {
         if (solve)
@@ -25,6 +23,8 @@ public class Solver : MonoBehaviour
             watch.Stop();
 
             Debug.LogFormat("Found {0} solutions in {1} seconds",solutions, watch.ElapsedMilliseconds / 1000f);
+
+            _mc.RefreshAllCells();
         }
 
         if (clear)
@@ -42,8 +42,6 @@ public class Solver : MonoBehaviour
                 }
             }
         }
-
-        if (BoardManager) BoardManager.UpdateAllCells();
     }
 
     void Awake()
@@ -55,6 +53,11 @@ public class Solver : MonoBehaviour
     {
         _mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
         m_stateManager = _mc.stateManager;
+    }
+
+    public HashSet<char> GetValidTokensForCell(int[] cellIndex)
+    {
+        return GetValidTokensForCell(m_stateManager.BoardState, cellIndex);
     }
 
     // find the tokens that don't conflict with other tokens in the set(s)

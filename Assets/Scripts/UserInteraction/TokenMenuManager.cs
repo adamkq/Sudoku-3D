@@ -13,14 +13,15 @@ public class TokenMenuManager : MonoBehaviour
      */
 
     [SerializeField] private GameObject m_tokenMenu;
-    [SerializeField] private BoardManager m_boardManager;
-
+    private MasterController masterController { get; set; }
     private CellController m_selectedCell;
     private TokenButton[] m_tokenButtons;
     private TokenMenuCloseButton m_tmcb; // entire-screen button in the background that will close the menu when clicked
 
     public void OpenMenuAtCell(GameObject cell)
     {
+        masterController = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
+
         m_selectedCell = cell.GetComponent<CellController>();
 
         // positioning
@@ -52,10 +53,10 @@ public class TokenMenuManager : MonoBehaviour
     // token buttons will call this method
     public void MakeSelection(char cellValue)
     {
-        m_boardManager.SetCellValue(m_selectedCell.CellIndex, cellValue);
-        m_selectedCell.UpdateCellValue();
+        masterController.stateManager.SetCellValue(m_selectedCell.CellIndex, cellValue);
 
-        m_boardManager.RefreshAllCellColors();
+        masterController.RefreshAllCells();
+
         CloseMenu();
     }
 
@@ -73,7 +74,7 @@ public class TokenMenuManager : MonoBehaviour
     // Can set other background colors as well
     void IndicateConflictingTokens()
     {
-        HashSet<char> validTokens = m_boardManager.masterController.stateManager.GetValidTokensForCell(m_selectedCell.CellIndex);
+        HashSet<char> validTokens = masterController.solver.GetValidTokensForCell(m_selectedCell.CellIndex);
 
         foreach(var tb in m_tokenButtons)
         {
@@ -81,7 +82,7 @@ public class TokenMenuManager : MonoBehaviour
             bool result = char.TryParse(tb.GetTokenValue(), out chr);
             if (result)
             {
-                tb.SetBackgroundColor(m_boardManager.GetCellColor(validTokens, chr, false));
+                //tb.SetBackgroundColor(m_boardManager.GetCellColor(validTokens, chr, false));
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
@@ -10,39 +11,64 @@ public class CellController : MonoBehaviour
     // 2. Show a popup menu when the cell is tapped
     // 3. Update the character in response to popup menu selection
 
-    public MasterController MasterController { get; set; }
-    public BoardManager BoardManager;
-    public int[] CellIndex = new int[3];
+    
     public char CellChar { get; set; }
-
     [SerializeField] private Button button;
     [SerializeField] private Image image;
-    [Tooltip("Used by OnValidate to set the cell as given/not given")]
-    [SerializeField] private bool cellIsGiven;
+    [SerializeField] private TokenMenuManager tokenMenu;
+    [SerializeField] private int slice; // 0 or 1 depending on if it's the top or bottom of the screen
+
+    private MasterController masterController { get; set; }
+    private int[] m_cellIndex;
+
+    public int[] CellIndex
+    {
+        get { return (int[])m_cellIndex.Clone(); } // returns a copy of the array
+        private set { m_cellIndex = value; }
+    } 
 
     private TextMeshProUGUI buttonText;
 
+    void Awake()
+    {
+        buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+
+        masterController = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
+
+        int siblingIndex = transform.GetSiblingIndex();
+        SetCellIndex(new int[3] {siblingIndex % 8, siblingIndex / 8, slice});
+
+        SetTint();
+
+        if (masterController != null)
+        {
+            masterController.IncludeCellInList(this);
+            UpdateCell();
+        }
+        else
+        {
+            Debug.LogError("Error: master controller not found");
+        }
+        
+    }
+
     public void TaskOnClick()
     {
-        // shift-click to toggle givens
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetKeyDown(KeyCode.LeftShift))
         {
             ToggleCellIsGiven();
         }
         else
         {
-            // givens can't be changed, so no need to open a menu
-            if (MasterController.stateManager.IsGiven(CellIndex)) return;
-            BoardManager.OpenTokenMenuAtCell(gameObject);
+            tokenMenu.OpenMenuAtCell(gameObject);
         }
     }
 
-    // this is called by BoardManager whenever the slice is updated
-    public void SetCellIndex(int[] cellIndex)
+    private void SetCellIndex(int[] cellIndex)
     {
         if (cellIndex.Length != 3)
         {
-            Debug.LogError("Invalid dimensions in cell index");
+            Debug.LogError("Invalid dimensions of cell index");
             return;
         }
 
@@ -50,51 +76,81 @@ public class CellController : MonoBehaviour
         {
             if (index < 0 || index > 7)
             {
-                Debug.LogError("Invalid dimensions in cell index");
+                Debug.LogErrorFormat("Invalid values in cell index: {0}, {1}, {2}", cellIndex[0], cellIndex[1], cellIndex[2]);
                 return;
             }
         }
 
-        CellIndex = cellIndex;
+        m_cellIndex = cellIndex;
     }
 
-    public void UpdateCellValue()
+    public void UpdateCell()
     {
-        UpdateCellValue(CellIndex);
+        UpdateCellValue(m_cellIndex);
+        SetBackgroundColor();
     }
 
     public void UpdateCellValue(int[] cellIndex)
     {
-        CellChar = MasterController.stateManager.GetCellValue(cellIndex);
-        buttonText.text = CellChar.ToString();
+        CellChar = masterController.stateManager.GetCellValue(cellIndex);
+        
+        if (buttonText != null)
+        {
+            buttonText.text = CellChar.ToString();
+        }
     }
 
-    public void SetBackgroundColor(Color color)
+    private void SetBackgroundColor()
     {
-        image.color = color;
+        Color color;
+        // ruleset for determining the color of the cell
+        bool cellIsGiven = masterController.stateManager.GetCellIsGiven(m_cellIndex);
+
+        HashSet<char> validTokens = masterController.solver.GetValidTokensForCell(m_cellIndex);
+
+        if (cellIsGiven)
+        {
+            color = Colors.CELL_GIVEN;
+        }
+        else if (CellChar != ' ' && !validTokens.Contains(CellChar))
+        {
+            color = Colors.CELL_CONFLICT;
+        }
+        else
+        {
+            color = Colors.CELL_NORMAL;
+        }
+
+        if(image)
+        {
+            image.color = color;
+        }
+        
     }
 
-    public void SetTint(Color color)
+
+    private void SetTint()
     {
+        // set tint based on alternating subcubes of cell; this should help user navigate/understand the board
+        int even = (CellIndex[0] - CellIndex[0] % 2) + (CellIndex[1] - CellIndex[1] % 2);
+        Color tintColor = even % 4 == 0 ? new Color(1, 1, 1) : new Color(0.85f, 0.85f, 0.85f);
+
         ColorBlock colorBlock = button.colors;
 
-        colorBlock.normalColor = color;
-        colorBlock.highlightedColor = color;
-        colorBlock.pressedColor = color;
-        colorBlock.selectedColor = color;
+        colorBlock.normalColor = tintColor;
+        colorBlock.highlightedColor = tintColor;
+        colorBlock.pressedColor = tintColor;
+        colorBlock.selectedColor = tintColor;
 
         button.colors = colorBlock;
     }
 
-    void Awake()
-    {
-        buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
-    }
-
     void ToggleCellIsGiven()
     {
-        MasterController.stateManager.BoardGivens[CellIndex[0], CellIndex[1], CellIndex[2]] = MasterController.stateManager.IsGiven(CellIndex) ? 0 : 1;
+        bool cellIsGiven = !masterController.stateManager.GetCellIsGiven(m_cellIndex);
 
-        SetBackgroundColor(BoardManager.GetCellColor(new HashSet<char>() { 'X' }, 'X', MasterController.stateManager.IsGiven(CellIndex)));
+        masterController.stateManager.SetCellIsGiven(m_cellIndex, cellIsGiven);
+
+        SetBackgroundColor();
     }
 }

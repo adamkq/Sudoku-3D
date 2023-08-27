@@ -40,6 +40,16 @@ public class StateManager : MonoBehaviour
         BoardState[cellIndex[0], cellIndex[1], cellIndex[2]] = cellValue;
     }
 
+    public bool GetCellIsGiven(int[] cellIndex)
+    {
+        return BoardGivens[cellIndex[0], cellIndex[1], cellIndex[2]] == 1;
+    }
+
+    public void SetCellIsGiven(int[] cellIndex, bool isGiven)
+    {
+        BoardGivens[cellIndex[0], cellIndex[1], cellIndex[2]] = isGiven ? 1 : 0;
+    }
+
     public void ResetBoard()
     {
         GenerateDefaultBoardStateAndGivens();
@@ -68,6 +78,7 @@ public class StateManager : MonoBehaviour
 
                         chr = puzzleJSON.serializeBoardState[i * 16 + j * 2 + k];
                         BoardState[i, j, k] = chr == '0' ? ' ' : chr;
+
                     }
                     catch
                     {
@@ -91,10 +102,5 @@ public class StateManager : MonoBehaviour
                 }
             }
         }
-    }
-
-    internal HashSet<char> GetValidTokensForCell(int[] cellIndex)
-    {
-        return _mc.solver.GetValidTokensForCell(BoardState, cellIndex);
     }
 }

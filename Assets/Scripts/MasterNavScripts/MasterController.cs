@@ -8,9 +8,8 @@ public class MasterController : MonoBehaviour
     public Solver solver;
     public PuzzleLoad puzzleLoad;
     public PuzzleSave puzzleSave;
-    
-    public string sliceTargetFaceName { get; set; }
-    public string sliceDownwardFaceName { get; set; }
+
+    private List<CellController> cells = new List<CellController>();
 
     private void Awake()
     {
@@ -28,10 +27,8 @@ public class MasterController : MonoBehaviour
         SceneManager.LoadScene(sceneName);
     }
 
-    public void TransitionToSliceView(string targetFaceName, string downwardFaceName)
+    public void TransitionToSliceView()
     {
-        sliceTargetFaceName = targetFaceName;
-        sliceDownwardFaceName = downwardFaceName;
         LoadScene("SliceViewScene");
     }
 
@@ -44,6 +41,22 @@ public class MasterController : MonoBehaviour
     {
         // set the stateManager w/ the givens and the state.
         stateManager.InitializePuzzle(puzzleJSON);
-        TransitionToSliceView("CubeFaceBack", "CubeFaceBottom");
+        TransitionToSliceView();
+    }
+
+    public void IncludeCellInList(CellController cellController)
+    {
+        if (cellController != null)
+        {
+            cells.Add(cellController);
+        }
+    }
+
+    public void RefreshAllCells()
+    {
+        foreach(CellController cell in cells)
+        {
+            cell.UpdateCell();
+        }
     }
 }
