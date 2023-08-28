@@ -108,6 +108,8 @@ public class CellController : MonoBehaviour
 
         HashSet<char> validTokens = masterController.solver.GetValidTokensForCell(m_cellIndex);
 
+        // TODO if cell has only 1 valid option and is cleared, color it yellow
+        // if cell is filled, and all of its row/col/subcube cells are filled, and it's valid, color it green
         if (cellIsGiven)
         {
             color = Colors.CELL_GIVEN;
