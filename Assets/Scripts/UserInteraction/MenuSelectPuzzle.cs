@@ -10,6 +10,11 @@ public class MenuSelectPuzzle : MonoBehaviour
 
     public void MenuButtonClicked(int buttonIndex)
     {
+        if (buttonIndex == 7) // empty board
+        {
+            m_masterController.InitializePuzzle();
+            return;
+        }
         m_masterController.InitializePuzzle(m_masterController.GetAllPuzzles()[buttonIndex]);
     }
 
@@ -26,25 +31,8 @@ public class MenuSelectPuzzle : MonoBehaviour
     // present the valid puzzles as selectable options in the scroll menu
     void RefreshMenu()
     {
-        // scan all saved puzzles and generate a menu button for each one
-        ClearMenu();
+        // scan all saved puzzles and match them to a button
         List<PuzzleJSON> allPuzzlesJSON = m_masterController.GetAllPuzzles();
-
-        foreach(var puzzleJson in allPuzzlesJSON)
-        {
-            GameObject puzzleOption = Instantiate(m_puzzleMenuButtonPrefab, m_viewportContent.transform);
-            PuzzleMenuButton pmb = puzzleOption.GetComponent<PuzzleMenuButton>();
-            pmb.SetTextOnButton(puzzleJson.puzzleTitle, GetDifficulty(puzzleJson.serializeBoardGivens), GetNumFilled(puzzleJson.serializeBoardState));
-            pmb.MenuSelectPuzzle = gameObject.GetComponent<MenuSelectPuzzle>();
-        }
-    }
-
-    private void ClearMenu()
-    {
-        foreach(Transform child in m_viewportContent.transform)
-        {
-            Destroy(child.gameObject);
-        }
     }
 
     private string GetDifficulty(string serializedBoardGivens)

@@ -44,6 +44,13 @@ public class MasterController : MonoBehaviour
         TransitionToSliceView();
     }
 
+    public void InitializePuzzle()
+    {
+        // set the stateManager w/ the givens and the state.
+        stateManager.InitializePuzzle(new PuzzleJSON());
+        TransitionToSliceView();
+    }
+
     public void IncludeCellInList(CellController cellController)
     {
         if (cellController != null)
