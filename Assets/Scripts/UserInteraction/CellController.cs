@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections.Generic;
+using System;
 
 public class CellController : MonoBehaviour
 {
@@ -13,10 +14,11 @@ public class CellController : MonoBehaviour
 
     
     public char CellChar { get; set; }
-    [SerializeField] private Button button;
-    [SerializeField] private Image image;
-    [SerializeField] private TokenMenuManager tokenMenu;
+    [SerializeField] private Button m_button;
+    [SerializeField] private Image m_background;
     [SerializeField] private int slice; // 0 or 1 depending on if it's the top or bottom of the screen
+
+    [SerializeField] private GameObject[] m_notes;
 
     private MasterController masterController { get; set; }
     private int[] m_cellIndex;
@@ -31,14 +33,12 @@ public class CellController : MonoBehaviour
 
     void Awake()
     {
-        buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+        buttonText = m_button.GetComponentInChildren<TextMeshProUGUI>();
 
         masterController = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
 
         int siblingIndex = transform.GetSiblingIndex();
         SetCellIndex(new int[3] {siblingIndex % 8, siblingIndex / 8, slice});
-
-        SetTint();
 
         if (masterController != null)
         {
@@ -49,7 +49,8 @@ public class CellController : MonoBehaviour
         {
             Debug.LogError("Error: master controller not found");
         }
-        
+
+        UpdateNotes(new HashSet<char>());
     }
 
     public void TaskOnClick()
@@ -60,7 +61,9 @@ public class CellController : MonoBehaviour
         }
         else
         {
-            tokenMenu.OpenMenuAtCell(gameObject);
+            Debug.LogFormat("Cell clicked at [{0}, {1}, {2}]", m_cellIndex[0], m_cellIndex[1], m_cellIndex[2]);
+            // TODO make this toggle
+            SetBackgroundColor(Colors.CELL_SELECTED);
         }
     }
 
@@ -86,8 +89,12 @@ public class CellController : MonoBehaviour
 
     public void UpdateCell()
     {
+        // also mark conflicted cell
         UpdateCellValue(m_cellIndex);
-        SetBackgroundColor();
+
+        HashSet<char> validTokens = masterController.solver.GetValidTokensForCell(m_cellIndex);
+
+        SetMainTextColor(CellChar != ' ' && !validTokens.Contains(CellChar) ? Colors.TEXT_CONFLICT : Colors.TEXT_NORMAL);
     }
 
     public void UpdateCellValue(int[] cellIndex)
@@ -100,51 +107,25 @@ public class CellController : MonoBehaviour
         }
     }
 
-    private void SetBackgroundColor()
+    private void SetMainTextColor(Color color)
     {
-        Color color;
-        // ruleset for determining the color of the cell
-        bool cellIsGiven = masterController.stateManager.GetCellIsGiven(m_cellIndex);
-
-        HashSet<char> validTokens = masterController.solver.GetValidTokensForCell(m_cellIndex);
-
-        // TODO if cell has only 1 valid option and is cleared, color it yellow
-        // if cell is filled, and all of its row/col/subcube cells are filled, and it's valid, color it green
-        if (cellIsGiven)
+        if (buttonText != null)
         {
-            color = Colors.CELL_GIVEN;
-        }
-        else if (CellChar != ' ' && !validTokens.Contains(CellChar))
-        {
-            color = Colors.CELL_CONFLICT;
-        }
-        else
-        {
-            color = Colors.CELL_NORMAL;
-        }
-
-        if(image)
-        {
-            image.color = color;
-        }
-        
+            buttonText.color = color;
+        }   
     }
 
-
-    private void SetTint()
+    private void SetBackgroundColor(Color color)
     {
-        // set tint based on alternating subcubes of cell; this should help user navigate/understand the board
-        int even = (CellIndex[0] - CellIndex[0] % 2) + (CellIndex[1] - CellIndex[1] % 2);
-        Color tintColor = even % 4 == 0 ? new Color(1, 1, 1) : new Color(0.85f, 0.85f, 0.85f);
+        if(m_background)
+        {
+            m_background.color = color;
+        }
+    }
 
-        ColorBlock colorBlock = button.colors;
-
-        colorBlock.normalColor = tintColor;
-        colorBlock.highlightedColor = tintColor;
-        colorBlock.pressedColor = tintColor;
-        colorBlock.selectedColor = tintColor;
-
-        button.colors = colorBlock;
+    private void CheckRelatedAndSetBackgroundColor()
+    {
+        // set background color if this cell is related to the selected cell. This illustrates related sets to the user
     }
 
     void ToggleCellIsGiven()
@@ -153,6 +134,35 @@ public class CellController : MonoBehaviour
 
         masterController.stateManager.SetCellIsGiven(m_cellIndex, cellIsGiven);
 
-        SetBackgroundColor();
+        Color _color = cellIsGiven ? Colors.TEXT_GIVEN : Colors.TEXT_NORMAL;
+        SetMainTextColor(_color);
+    }
+
+    void ShowNote(GameObject note, bool isDisplayed)
+    {
+        TextMeshProUGUI tmpUGUI = note.GetComponentInChildren<TextMeshProUGUI>();
+
+        if (tmpUGUI)
+        {
+            tmpUGUI.enabled = isDisplayed;
+        }
+        else
+        {
+            Debug.LogWarning("tmpUGUI not found on cell");
+        }
+        
+    }
+
+    public void UpdateNotes(HashSet<char> tokens)
+    {
+        // show the notes that correspond with valid tokens. If not present, then hide that token
+        ShowNote(m_notes[0], tokens.Contains('1'));
+        ShowNote(m_notes[1], tokens.Contains('2'));
+        ShowNote(m_notes[2], tokens.Contains('3'));
+        ShowNote(m_notes[3], tokens.Contains('4'));
+        ShowNote(m_notes[4], tokens.Contains('5'));
+        ShowNote(m_notes[5], tokens.Contains('6'));
+        ShowNote(m_notes[6], tokens.Contains('7'));
+        ShowNote(m_notes[7], tokens.Contains('8'));
     }
 }
