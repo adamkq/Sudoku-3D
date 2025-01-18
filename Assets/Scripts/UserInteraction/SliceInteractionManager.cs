@@ -4,13 +4,11 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// This class is an all-in-one that does the following:
-/// 1) Receive clicks on the digits menu and highlight/select that cell
-/// 2) Receive clicks on action items and update cells accordingly
+/// Handles UI changes between cells and digit-buttons, such as highlighting or disabling
 /// </summary>
 public class SliceInteractionManager : MonoBehaviour
 {
-    private MasterController m_masterController { get; set; }
+    private MasterController _mc { get; set; }
     private CellController[] m_cellsUpper;
     private CellController[] m_cellsLower;
     private int m_selected = 0; // default digit
@@ -20,24 +18,29 @@ public class SliceInteractionManager : MonoBehaviour
 
     void Awake()
     {
-        m_masterController = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
+        _mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
 
         m_cellsUpper = m_sliceUpper.GetComponentsInChildren<CellController>(true);
-        Debug.Log($"{m_cellsUpper.Length}");
         m_cellsLower = m_sliceLower.GetComponentsInChildren<CellController>(true);
-        Debug.Log($"{m_cellsLower.Length}");
+
+        foreach(var cell in m_cellsUpper)
+        {
+            cell.sim = this;
+        }
+
+        foreach(var cell in m_cellsLower)
+        {
+            cell.sim = this;
+        }
     }
 
     /// <summary>
     /// This represents an attempt by the player to modify the state of the board.
-    /// It is called by the cell controller when a cell in one of the slices is clicked on.
     /// </summary>
-    public void SelectCell(CellController cellController)
+    public void ModifyCell(int digit)
     {
-        if (m_selected != 0)
-        {
-            m_masterController.stateManager.SetCellValue(cellController.CellIndex, (char)m_selected);
-        }
+        // TODO; change values of all selected cells to the digit in question, then de-select cells
+        // if digit = 0, then clear cells
     }
 
     public void OnClickUndo()

@@ -46,7 +46,7 @@ public class MasterController : MonoBehaviour
 
     public void InitializePuzzle()
     {
-        // set the stateManager w/ the givens and the state.
+        // set the stateManager w/ the givens and the state. Default puzzle with all cells empty
         stateManager.InitializePuzzle(new PuzzleJSON());
         TransitionToSliceView();
     }
@@ -64,6 +64,17 @@ public class MasterController : MonoBehaviour
         foreach(CellController cell in cells)
         {
             cell.UpdateCell();
+        }
+    }
+
+    public void DeselectAllCellsExcept(CellController cell)
+    {
+        foreach(CellController _cell in cells)
+        {
+            if (cell is null || _cell != cell)
+            {
+                _cell.SetSelected(false);
+            }
         }
     }
 }

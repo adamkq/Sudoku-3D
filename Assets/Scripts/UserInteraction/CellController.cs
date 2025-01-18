@@ -20,29 +20,31 @@ public class CellController : MonoBehaviour
 
     [SerializeField] private GameObject[] m_notes;
 
-    private MasterController masterController { get; set; }
+    private MasterController _mc { get; set; }
     private int[] m_cellIndex;
+    private bool m_isSelected = false;
 
     public int[] CellIndex
     {
         get { return (int[])m_cellIndex.Clone(); } // returns a copy of the array
         private set { m_cellIndex = value; }
-    } 
+    }
 
+    public SliceInteractionManager sim;
     private TextMeshProUGUI buttonText;
 
     void Awake()
     {
         buttonText = m_button.GetComponentInChildren<TextMeshProUGUI>();
 
-        masterController = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
+        _mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
 
         int siblingIndex = transform.GetSiblingIndex();
         SetCellIndex(new int[3] {siblingIndex % 8, siblingIndex / 8, slice});
 
-        if (masterController != null)
+        if (_mc != null)
         {
-            masterController.IncludeCellInList(this);
+            _mc.IncludeCellInList(this);
             UpdateCell();
         }
         else
@@ -62,8 +64,35 @@ public class CellController : MonoBehaviour
         else
         {
             Debug.LogFormat("Cell clicked at [{0}, {1}, {2}]", m_cellIndex[0], m_cellIndex[1], m_cellIndex[2]);
-            // TODO make this toggle
-            SetBackgroundColor(Colors.CELL_SELECTED);
+            
+            SetSelected(true);
+            _mc.DeselectAllCellsExcept(this);
+        }
+    }
+
+    public void SetSelected(bool isSelected)
+    {
+        m_isSelected = isSelected;
+        SetBackgroundColor(isSelected ? Colors.CELL_SELECTED : Colors.CELL_NORMAL);
+    }
+
+    public void UpdateCell()
+    {
+        // also mark conflicted cell
+        UpdateCellValue(m_cellIndex);
+
+        HashSet<char> validTokens = _mc.solver.GetValidTokensForCell(m_cellIndex);
+
+        SetMainTextColor(CellChar != ' ' && !validTokens.Contains(CellChar) ? Colors.TEXT_CONFLICT : Colors.TEXT_NORMAL);
+    }
+
+    public void UpdateCellValue(int[] cellIndex)
+    {
+        CellChar = _mc.stateManager.GetCellValue(cellIndex);
+        
+        if (buttonText != null)
+        {
+            buttonText.text = CellChar.ToString();
         }
     }
 
@@ -87,26 +116,6 @@ public class CellController : MonoBehaviour
         m_cellIndex = cellIndex;
     }
 
-    public void UpdateCell()
-    {
-        // also mark conflicted cell
-        UpdateCellValue(m_cellIndex);
-
-        HashSet<char> validTokens = masterController.solver.GetValidTokensForCell(m_cellIndex);
-
-        SetMainTextColor(CellChar != ' ' && !validTokens.Contains(CellChar) ? Colors.TEXT_CONFLICT : Colors.TEXT_NORMAL);
-    }
-
-    public void UpdateCellValue(int[] cellIndex)
-    {
-        CellChar = masterController.stateManager.GetCellValue(cellIndex);
-        
-        if (buttonText != null)
-        {
-            buttonText.text = CellChar.ToString();
-        }
-    }
-
     private void SetMainTextColor(Color color)
     {
         if (buttonText != null)
@@ -123,16 +132,11 @@ public class CellController : MonoBehaviour
         }
     }
 
-    private void CheckRelatedAndSetBackgroundColor()
-    {
-        // set background color if this cell is related to the selected cell. This illustrates related sets to the user
-    }
-
     void ToggleCellIsGiven()
     {
-        bool cellIsGiven = !masterController.stateManager.GetCellIsGiven(m_cellIndex);
+        bool cellIsGiven = !_mc.stateManager.GetCellIsGiven(m_cellIndex);
 
-        masterController.stateManager.SetCellIsGiven(m_cellIndex, cellIsGiven);
+        _mc.stateManager.SetCellIsGiven(m_cellIndex, cellIsGiven);
 
         Color _color = cellIsGiven ? Colors.TEXT_GIVEN : Colors.TEXT_NORMAL;
         SetMainTextColor(_color);
@@ -150,10 +154,9 @@ public class CellController : MonoBehaviour
         {
             Debug.LogWarning("tmpUGUI not found on cell");
         }
-        
     }
 
-    public void UpdateNotes(HashSet<char> tokens)
+    void UpdateNotes(HashSet<char> tokens)
     {
         // show the notes that correspond with valid tokens. If not present, then hide that token
         ShowNote(m_notes[0], tokens.Contains('1'));
