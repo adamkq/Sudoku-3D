@@ -22,7 +22,7 @@ public class CellController : MonoBehaviour
 
     private MasterController _mc { get; set; }
     private int[] m_cellIndex;
-    private bool m_isSelected = false;
+    public bool IsSelected { get; private set; }
 
     public int[] CellIndex
     {
@@ -30,12 +30,13 @@ public class CellController : MonoBehaviour
         private set { m_cellIndex = value; }
     }
 
-    public SliceInteractionManager sim;
+    public SliceInteractionManager _sim;
     private TextMeshProUGUI buttonText;
 
     void Awake()
     {
         buttonText = m_button.GetComponentInChildren<TextMeshProUGUI>();
+        IsSelected = false;
 
         _mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
 
@@ -66,13 +67,13 @@ public class CellController : MonoBehaviour
             Debug.LogFormat("Cell clicked at [{0}, {1}, {2}]", m_cellIndex[0], m_cellIndex[1], m_cellIndex[2]);
             
             SetSelected(true);
-            _mc.DeselectAllCellsExcept(this);
+            _sim.DeselectAllCellsExcept(this);
         }
     }
 
     public void SetSelected(bool isSelected)
     {
-        m_isSelected = isSelected;
+        IsSelected = isSelected;
         SetBackgroundColor(isSelected ? Colors.CELL_SELECTED : Colors.CELL_NORMAL);
     }
 

@@ -9,38 +9,61 @@ using UnityEngine.UI;
 public class SliceInteractionManager : MonoBehaviour
 {
     private MasterController _mc { get; set; }
-    private CellController[] m_cellsUpper;
-    private CellController[] m_cellsLower;
+    private CellController[] m_cells;
     private int m_selected = 0; // default digit
 
-    [SerializeField] private GameObject m_sliceUpper;
-    [SerializeField] private GameObject m_sliceLower;
+    [SerializeField] private GameObject m_slicesParent;
 
     void Awake()
     {
         _mc = GameObject.FindGameObjectWithTag("MasterController").GetComponent<MasterController>();
 
-        m_cellsUpper = m_sliceUpper.GetComponentsInChildren<CellController>(true);
-        m_cellsLower = m_sliceLower.GetComponentsInChildren<CellController>(true);
+        m_cells = m_slicesParent.GetComponentsInChildren<CellController>(true);
 
-        foreach(var cell in m_cellsUpper)
+        foreach(var cell in m_cells)
         {
-            cell.sim = this;
+            cell._sim = this;
         }
+    }
 
-        foreach(var cell in m_cellsLower)
+    public void DeselectAllCells()
+    {
+        foreach(CellController _cell in m_cells)
         {
-            cell.sim = this;
+            _cell.SetSelected(false);
+        }
+    }
+
+    public void DeselectAllCellsExcept(CellController cell)
+    {
+        foreach(CellController _cell in m_cells)
+        {
+            if (_cell != cell)
+            {
+                _cell.SetSelected(false);
+            }
         }
     }
 
     /// <summary>
     /// This represents an attempt by the player to modify the state of the board.
+    /// Will apply the selected digit to the selected cell(s), then deselect.
     /// </summary>
     public void ModifyCell(int digit)
     {
-        // TODO; change values of all selected cells to the digit in question, then de-select cells
-        // if digit = 0, then clear cells
+        char chr = digit != 0 ? (char)(digit + 48) : ' '; // ASCII conversion
+        Debug.Log(chr);
+        Debug.Log(m_cells.Length);
+        foreach(var cell in m_cells)
+        {            
+            if(cell.IsSelected)
+            {
+                _mc.stateManager.SetCellValue(cell.CellIndex, chr);
+            }
+        }
+
+        DeselectAllCells();
+        _mc.RefreshAllCells();
     }
 
     public void OnClickUndo()

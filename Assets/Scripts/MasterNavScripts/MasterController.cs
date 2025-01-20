@@ -66,15 +66,4 @@ public class MasterController : MonoBehaviour
             cell.UpdateCell();
         }
     }
-
-    public void DeselectAllCellsExcept(CellController cell)
-    {
-        foreach(CellController _cell in cells)
-        {
-            if (cell is null || _cell != cell)
-            {
-                _cell.SetSelected(false);
-            }
-        }
-    }
 }
